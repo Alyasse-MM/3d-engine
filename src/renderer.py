@@ -2,13 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 import math
-import tools # Import our own tools
+import tools
 
 def render_frame(state, vertices, faces, fps, pause_time, fig):
     if not plt.fignum_exists(fig.number): return
     plt.clf()
 
-    # Access values from the 'state' object
     rx_model, ry_model = tools.get_rotation_matrices(math.radians(state.angle_x), math.radians(state.angle_y))
     _, ry_view = tools.get_rotation_matrices(0, math.radians(-state.camera_yaw)) 
     
@@ -50,6 +49,7 @@ def render_frame(state, vertices, faces, fps, pause_time, fig):
     faces_to_draw.sort(key=lambda x: x[2], reverse=True)
 
     ax = plt.gca()
+    
     for points, color, _ in faces_to_draw:
         poly = Polygon(points, facecolor=color, edgecolor=color, linewidth=0.5, alpha=1.0) 
         ax.add_patch(poly)
