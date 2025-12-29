@@ -7,7 +7,7 @@ The primary goal of this project is educational: to demystify 3D graphics by bui
 
 By implementing every step of the pipeline manually—from matrix transformations to rasterization for the core—I aim to gain a deep, mathematical understanding of how a computer turns a list of numbers into a 3D world.
 
-## Current Version: V0.1
+## Current Version: V0
 It is the first version. It focuses on the **fundamental rendering loop**. It renders two 3D objects (Cubes) with a fully traversable camera system, implementing the complete mathematics of the graphics pipeline.
 
 <p align="center">
@@ -58,7 +58,7 @@ It is the first version. It focuses on the **fundamental rendering loop**. It re
     ```
 3.  **Run the engine:**
     ```bash
-    python engine.py
+    python src/main.py
     ```
 
 ---
