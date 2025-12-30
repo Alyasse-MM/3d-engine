@@ -1,66 +1,40 @@
 # 3D Engine from Scratch
 
-**A 3D rendering engine built from scratch.**
+**A software-based 3D rendering engine built from scratch to understand computer graphics.**
 
-## Project Goal & Motivation
-The primary goal of this project is educational: to demystify 3D graphics by building an engine from scratch, without relying on hardware acceleration (OpenGL/Vulkan) or high-level 3D libraries (Unity/Three.js).
+## About This Project
+The primary goal of this project is educational. It is an attempt to build a functional 3D graphics engine from first principles, **without** relying on hardware acceleration (OpenGL/Vulkan) or high-level 3D libraries (Unity/Three.js/GLM).
 
-By implementing every step of the pipeline manually—from matrix transformations to rasterization for the core—I aim to gain a deep, mathematical understanding of how a computer turns a list of numbers into a 3D world.
+By implementing the graphics pipeline manually—from matrix math to rasterization—I aim, with this project, to understand how a computer turns a list of raw numbers into a 3D world.
 
-## Current Version: V0
-It is the first version. It focuses on the **fundamental rendering loop**. It renders two 3D objects (Cubes) with a fully traversable camera system, implementing the complete mathematics of the graphics pipeline.
+The engine is written in **modern C++** to ensure performance and real-time rendering capabilities (60+ FPS), using **SFML** strictly for window management and putting pixels on the screen.
 
 <p align="center">
-  <img src="screenshots/demo_rotation.gif" alt="3D Engine Demo" height="300">
-  <img src="screenshots/demo_cam_movements.gif" alt="3D Engine Demo" height="300">
+  <img src="media/screenshots/demo_rotation.gif" alt="rotation demo" height="300">
+  <img src="media/screenshots/demo_cam_movements.gif" alt="camera movements demo" height="300">
 </p>
 
-### Learning Objectives:
-* **Linear Algebra:** Understanding Linear Algebra in a visual context (Matrices, Dot/Cross Products).
-* **Pipelinen Implementation:** Implementing the 3D Graphics Pipeline (Model -> View -> Projection).
-* **Problem solving:** Solving geometric problems like Clipping (Sutherland-Hodgman) and Visibility (Back-face culling).
-* **Rasterization:** Writing a software rasterizer using standard 2D plotting tools.
+## Key Features
+* **Custom Mathematics:** Implementation of a custom Linear Algebra library (Vectors, Matrix 3x3, Rotation matrices).
+* **Rendering Pipeline:** Manual implementation of the core graphics pipeline, from vertex transformations and back-face culling to near-plane clipping and rasterization.
+* **Camera System:** Fully traversable 6-DOF camera system.
+* **Architecture:** Modular C++ structure separating State, Scene, Renderer, and Input logic.
 
-### Key Features
-* **Matrices:** Custom implementation of Rotation Matrices (X/Y/Z) and Perspective Projection.
-* **Camera System:** 6-DOF (Degrees of Freedom) camera with Translation and Yaw rotation.
-* **Rendering Pipeline:**
-    * **Back-face Culling:** Hides faces pointing away from the camera using dot products.
-    * **Clipping:** Implements the **Sutherland-Hodgman algorithm** to clip triangles against the near plane (preventing divide-by-zero errors and visual glitches).
-    * **Depth Sorting:** Uses a **centroid-based Painter's Algorithm** to draw faces in the correct order.
-* **Input Management:** Custom event listener for separating Model rotation (spinning the object) from View rotation (moving the camera).
-
-### Tech Stack
-* **Language:** Python 3.14.0
-* **Libraries:**
-    * `numpy`: For vector and matrix math.
-    * `matplotlib`: Used strictly as a 2D drawing canvas. No 3D toolkits used.
+## Tech Stack
+* **Language:** C++17
+* **Build System:** CMake
+* **Windowing & Input:** [SFML 3.0](https://www.sfml-dev.org/)
+    * *Note: SFML is NOT used for 3D functions. It is used only as a canvas to draw 2D shapes calculated by the engine.*
 
 ## Controls
-| Key | Action | Context |
-| :--- | :--- | :--- |
-| **Arrow Keys** | Rotate the two cubes | Model Rotation |
-| **Z / S** (or W/S) | Move Forward / Backward | Camera Movement |
-| **Q / D** (or A/D) | Strafe Left / Right | Camera Movement |
-| **A / E** | Turn Camera Left / Right | Camera Rotation (Yaw) |
+The engine supports multiple keyboard layouts. 
+**[See CONTROLS.md for the full list of inputs.](readmes/CONTROLS.md)**
+
+## How to run
+Every information and instructions to run the project are documented.
+**[See HOWTORUN.md for full details.](readmes/HOWTORUN.md)**
 
 ---
+*Created for educational purposes.*
 
-## How to Run
-1.  **Clone the repository:**
-    ```bash
-    git clone [https://github.com/Alyasse-MM/3d-engine.git](https://github.com/Alyasse-MM/3d-engine.git)
-    cd 3d-engine
-    ```
-2.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-3.  **Run the engine:**
-    ```bash
-    python src/main.py
-    ```
-
----
-
-*This project is a work in progress.
+**[⬆ Back to Top](#)**
