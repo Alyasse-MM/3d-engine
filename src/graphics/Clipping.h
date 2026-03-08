@@ -3,5 +3,5 @@
 #include "maths/Vector3.h"
 
 namespace Graphics {
-    std::vector<Vector3<float>> clipPolygon(const std::vector<Vector3<float>>& polygon);
+    std::vector<Vector3<float>> clipPolygon(const std::vector<Vector3<float>>& polygon, float z_near);
 }

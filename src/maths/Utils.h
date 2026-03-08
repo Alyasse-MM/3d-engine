@@ -1,6 +1,20 @@
 #pragma once
 #include "Vector3.h"
 #include "Matrix3.h"
+#include <SFML/System/Vector2.hpp>
+
+template <typename T>
+Matrix3<T> operator*(const Matrix3<T>& A, const Matrix3<T>& B) {
+    Matrix3<T> result;
+    for (int r = 0; r < 3; r++) {
+        for (int c = 0; c < 3; c++) {
+            result(r, c) = A.m[r * 3 + 0] * B.m[0 * 3 + c] +
+                A.m[r * 3 + 1] * B.m[1 * 3 + c] +
+                A.m[r * 3 + 2] * B.m[2 * 3 + c];
+        }
+    }
+    return result;
+}
 
 template <typename T>
 Vector3<T> operator*(const Matrix3<T>& mat, const Vector3<T>& v) {
@@ -29,4 +43,32 @@ namespace Maths {
     inline float toRadians(float degrees) {
         return degrees * 3.14159f / 180.0f;
     };
+
+
+    inline sf::Vector2f perspectiveProjection(const Vector3<float>& v, float focalLength, float centerX, float centerY) {
+        return {
+            (v.x / v.z) * focalLength + centerX,
+            (v.y / v.z) * focalLength + centerY
+        };
+    }
+
+    inline Vector3<float> intersectZNear(const Vector3<float>& a, const Vector3<float>& b, float zNear) {
+        float t = (zNear - a.z) / (b.z - a.z);
+        return a + (b - a) * t;
+    }
+
+    inline float calculateFocalLength(float fovDegrees, unsigned windowWidth) {
+        float fovRadians = toRadians(fovDegrees);
+        return (static_cast<float>(windowWidth) * 0.5f) / std::tan(fovRadians * 0.5f);
+    }
+
+    inline Vector3<float> worldToView(const Vector3<float>& v,
+        const Matrix3<float>& modelRotation,
+        const Matrix3<float>& viewRotation,
+        const Vector3<float>& cameraPos)
+    {
+        Vector3<float> world = modelRotation * v;
+        Vector3<float> translated = world - cameraPos;
+        return viewRotation * translated;
+    }
 };

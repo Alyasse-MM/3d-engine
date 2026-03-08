@@ -6,18 +6,16 @@
 #include "core/input.h"
 
 int main() {
-    // Setup Window
-    sf::ContextSettings settings;
-    settings.antiAliasingLevel = 8;
-    
-    sf::RenderWindow window(sf::VideoMode({1280, 720}), "3D Engine", sf::Style::Default, sf::State::Windowed, settings);
-    window.setFramerateLimit(60);
-
     EngineState state;
     Scene scene;
     Renderer renderer;
 
-    // Main Loop
+    sf::ContextSettings settings;
+    settings.antiAliasingLevel = state.antialiasinglevel;
+
+    sf::RenderWindow window(sf::VideoMode({state.windowWidth, state.windowHeight}), "3D Engine", sf::Style::Default, sf::State::Windowed, settings);
+    window.setFramerateLimit(60);
+
     while (window.isOpen()) {
         
         InputManager::handleInput(window, state);

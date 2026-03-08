@@ -4,7 +4,15 @@
 struct EngineState {
     float angle_x = 0.0f;
     float angle_y = 0.0f;
-    
-    Vector3<float> camera_pos = {0.0f, 0.0f, -4.0f};
+
+    Vector3<float> camera_pos = { 0.0f, 0.0f, -4.0f };
     float camera_yaw = 0.0f;
+
+    float fov = 90.0f;
+    float z_near = 0.1f;
+
+    unsigned windowWidth = 1920;
+    unsigned windowHeight = 1080;
+
+    unsigned antialiasinglevel = 20;
 };
