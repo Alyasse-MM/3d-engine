@@ -25,21 +25,21 @@ Vector3<T> operator*(const Matrix3<T>& mat, const Vector3<T>& v) {
     };
 }
 
-template <typename T>
-inline T dot(const Vector3<T>& a, const Vector3<T>& b) {
-    return a.x * b.x + a.y * b.y + a.z * b.z;
-}
-
-template <typename T>
-inline Vector3<T> cross(const Vector3<T>& a, const Vector3<T>& b) {
-    return {
-        a.y * b.z - a.z * b.y,
-        a.z * b.x - a.x * b.z,
-        a.x * b.y - a.y * b.x
-    };
-}
-
 namespace Maths {
+    template <typename T>
+    inline T dot(const Vector3<T>& a, const Vector3<T>& b) {
+        return a.x * b.x + a.y * b.y + a.z * b.z;
+    }
+
+    template <typename T>
+    inline Vector3<T> cross(const Vector3<T>& a, const Vector3<T>& b) {
+        return {
+            a.y * b.z - a.z * b.y,
+            a.z * b.x - a.x * b.z,
+            a.x * b.y - a.y * b.x
+        };
+    }
+
     inline float toRadians(float degrees) {
         return degrees * 3.14159f / 180.0f;
     };
