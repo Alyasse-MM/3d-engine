@@ -1,40 +1,17 @@
-# 3D Engine from Scratch
+# Software-Based 3D Engine
 
-**A software-based 3D rendering engine built from scratch to understand computer graphics.**
+A custom-built 3D graphics pipeline implemented in Modern C++. 
 
-## About This Project
-The primary goal of this project is educational. It is an attempt to build a functional 3D graphics engine from first principles, **without** relying on hardware acceleration (OpenGL/Vulkan) or high-level 3D libraries (Unity/Three.js/GLM).
+## The Goal
+This is an educational project whose goal is to learn the mechanics of 3D rendering. It serves as a practical exploration of computer graphics, from linear algebra to the rendering of a scene.
 
-By implementing the graphics pipeline manually—from matrix math to rasterization—I aim, with this project, to understand how a computer turns a list of raw numbers into a 3D world.
+## Core Systems
+* **Custom Math**: Fixed-function pipeline math using a bespoke Maths namespace.
+* **CPU Based**: All geometry processing is performed on the CPU.
+* **Build**: Powered by xmake for efficient setup and dependency management.
+* **Modular Architecture**: Decoupled systems for Engine State, Scene management, Rendering, and Input handling.
 
-The engine is written in **modern C++** to ensure performance and real-time rendering capabilities (60+ FPS), using **SFML** strictly for window management and putting pixels on the screen.
-
-<p align="center">
-  <img src="media/screenshots/demo_rotation.gif" alt="rotation demo" height="300">
-  <img src="media/screenshots/demo_cam_movements.gif" alt="camera movements demo" height="300">
-</p>
-
-## Key Features
-* **Custom Mathematics:** Implementation of a custom Linear Algebra library (Vectors, Matrix 3x3, Rotation matrices).
-* **Rendering Pipeline:** Manual implementation of the core graphics pipeline, from vertex transformations and back-face culling to near-plane clipping and rasterization.
-* **Camera System:** Fully traversable 6-DOF camera system.
-* **Architecture:** Modular C++ structure separating State, Scene, Renderer, and Input logic.
-
-## Tech Stack
-* **Language:** C++17
-* **Build System:** CMake
-* **Windowing & Input:** [SFML 3.0](https://www.sfml-dev.org/)
-    * *Note: SFML is NOT used for 3D functions. It is used only as a canvas to draw 2D shapes calculated by the engine.*
-
-## Controls
-The engine supports multiple keyboard layouts. 
-**[See CONTROLS.md for the full list of inputs.](readmes/CONTROLS.md)**
-
-## How to run
-Every information and instructions to run the project are documented.
-**[See HOWTORUN.md for full details.](readmes/HOWTORUN.md)**
-
----
-*Created for educational purposes.*
-
-**[⬆ Back to Top](#)**
+## Usage
+1. Install [xmake](https://xmake.io/)
+2. Run `xmake` to compile the project.
+3. Run `xmake run` to launch the engine.
