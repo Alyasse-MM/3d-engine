@@ -1,17 +1,9 @@
-#include "renderer.h"
+#include "painterRenderer.h"
 #include "maths/Math.h"
 #include "graphics/Clipping.h"
 #include <algorithm>
 
 using namespace Maths;
-
-inline bool backfaceCulling(const std::vector<Vector3<float>>& faceVerts) {
-    if (faceVerts.size() >= 3) {
-        Vector3<float> normal = cross(faceVerts[1] - faceVerts[0], faceVerts[2] - faceVerts[0]);
-        return (dot(normal, faceVerts[0]) >= 0);
-    }
-    return false;
-}
 
 inline void paintersAlgorithm(std::vector<RenderFace>& drawList) {
     std::sort(drawList.begin(), drawList.end(), [](const RenderFace& a, const RenderFace& b) {
@@ -19,7 +11,7 @@ inline void paintersAlgorithm(std::vector<RenderFace>& drawList) {
         });
 }
 
-void Renderer::render(sf::RenderWindow& window, EngineState& state, Scene& scene) {
+void PainterRenderer::render(sf::RenderWindow& window, EngineState& state, Scene& scene) {
     Matrix3<float> modelRot = Matrix3<float>::getRotationX(toRadians(state.model_angle_x)) * Matrix3<float>::getRotationY(toRadians(state.model_angle_y));
     Matrix3<float> viewRot = Matrix3<float>::getRotationY(toRadians(-state.camera_yaw));
 

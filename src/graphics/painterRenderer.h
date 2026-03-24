@@ -3,14 +3,9 @@
 #include <algorithm>
 #include "core/state.h"
 #include "scene.h"
+#include "softwareRenderer.h"
 
-struct RenderFace {
-    std::vector<sf::Vector2f> points;
-    sf::Color color;
-    float avgZ;
-};
-
-class Renderer {
+class PainterRenderer : public SoftwareRenderer {
 public:
     void render(sf::RenderWindow& window, EngineState& state, Scene& scene);
 };
