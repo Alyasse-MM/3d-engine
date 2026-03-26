@@ -3,7 +3,6 @@
 #include <optional>
 #include <cmath>
 #include "state.h"
-#include "graphics/renderer.h"
 
 class InputManager {
 public:

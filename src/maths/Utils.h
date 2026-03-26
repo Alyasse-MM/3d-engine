@@ -44,6 +44,13 @@ namespace Maths {
         return degrees * 3.14159f / 180.0f;
     };
 
+    inline bool backfaceCulling(const std::vector<Vector3<float>>& faceVerts) {
+        if (faceVerts.size() >= 3) {
+            Vector3<float> normal = cross(faceVerts[1] - faceVerts[0], faceVerts[2] - faceVerts[0]);
+            return (dot(normal, faceVerts[0]) >= 0);
+        }
+        return false;
+    }
 
     inline sf::Vector2f perspectiveProjection(const Vector3<float>& v, float focalLength, float centerX, float centerY) {
         return {

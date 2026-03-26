@@ -3,6 +3,7 @@
 #include <algorithm>
 #include "core/state.h"
 #include "scene.h"
+#include "maths/Vector3.h"
 
 struct RenderFace {
     std::vector<sf::Vector2f> points;
@@ -14,5 +15,5 @@ class SoftwareRenderer {
 public:
     virtual ~SoftwareRenderer() = default;
     virtual void render(sf::RenderWindow& window, EngineState& state, Scene& scene) = 0;
-    inline bool backfaceCulling(const std::vector<Vector3<float>>& faceVerts);
+    inline bool backfaceCulling(const std::vector<Maths::Vector3<float>>& faceVerts);
 };

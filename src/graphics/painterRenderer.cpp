@@ -5,7 +5,7 @@
 
 using namespace Maths;
 
-inline void paintersAlgorithm(std::vector<RenderFace>& drawList) {
+inline void PainterRenderer::paintersAlgorithm(std::vector<RenderFace>& drawList) {
     std::sort(drawList.begin(), drawList.end(), [](const RenderFace& a, const RenderFace& b) {
         return a.avgZ > b.avgZ;
         });
