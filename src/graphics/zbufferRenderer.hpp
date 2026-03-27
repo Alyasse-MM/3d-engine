@@ -2,7 +2,14 @@
 #include "softwareRenderer.hpp"
 
 class ZBufferRenderer : public SoftwareRenderer {
+private:
+    std::vector<uint32_t> color_buffer;
+    std::vector<float> z_buffer;
+
 public:
-    inline void paintersAlgorithm(std::vector<RenderFace>& drawList);
-    void render(sf::RenderWindow& window, EngineState& state, Scene& scene);
+    ZBufferRenderer(sf::RenderWindow& w, EngineState& e) : SoftwareRenderer(w, e),
+        z_buffer(e.windowWidth* e.windowHeight, 1.0f),
+        color_buffer(e.windowWidth* e.windowHeight, 0x000000FF) {}
+    void render();
+    void clear();
 };

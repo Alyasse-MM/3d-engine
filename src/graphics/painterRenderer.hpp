@@ -3,6 +3,7 @@
 
 class PainterRenderer : public SoftwareRenderer {
 public:
+    PainterRenderer(sf::RenderWindow& w, EngineState& e) : SoftwareRenderer(w, e) {}
     inline void paintersAlgorithm(std::vector<RenderFace>& drawList);
-    void render(sf::RenderWindow& window, EngineState& state, Scene& scene);
+    void render();
 };

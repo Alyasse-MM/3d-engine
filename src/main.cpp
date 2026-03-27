@@ -8,7 +8,7 @@
 
 int main() {
     EngineState state;
-    Scene scene;
+    Scene* scene = new Scene;
     std::unique_ptr<SoftwareRenderer> renderer;
 
     sf::ContextSettings settings;
@@ -20,7 +20,7 @@ int main() {
     bool use_Painter = true;
 
     if (use_Painter) {
-        renderer = std::make_unique<PainterRenderer>();
+        renderer = std::make_unique<PainterRenderer>(window,state);
     }
 
     while (window.isOpen()) {
@@ -28,7 +28,9 @@ int main() {
         InputManager::handleInput(window, state);
 
         window.clear(sf::Color::White);
-        renderer->render(window, state, scene);
+        if(renderer)
+            renderer->setScene(scene);
+            renderer->render();
         window.display();
     }
 

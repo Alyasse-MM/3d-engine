@@ -5,7 +5,7 @@
 using namespace Maths;
 
 namespace Graphics {
-    inline std::vector<Vector3<float>> sutherlandHodgmanZ(const std::vector<Vector3<float>>& polygon, float z_near) {
+    std::vector<Vector3<float>> sutherlandHodgmanZ(const std::vector<Vector3<float>>& polygon, float z_near) {
         if (polygon.empty()) return {};
 
         std::vector<Vector3<float>> outPoly;
