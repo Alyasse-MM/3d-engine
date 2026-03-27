@@ -1,5 +1,5 @@
-#include "input.h"
-#include "maths/Utils.h"
+#include "input.hpp"
+#include "maths/Utils.hpp"
 
 void InputManager::handleInput(sf::RenderWindow& window, EngineState& state) {
     while (const std::optional event = window.pollEvent()) {

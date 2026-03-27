@@ -2,7 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <optional>
 #include <cmath>
-#include "state.h"
+#include "state.hpp"
 
 class InputManager {
 public:

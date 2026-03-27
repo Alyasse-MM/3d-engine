@@ -1,9 +1,10 @@
 #include <SFML/Graphics.hpp>
-#include "core/state.h"
-#include "graphics/scene.h"
-#include "graphics/softwareRenderer.h"
-#include "maths/Math.h"
-#include "core/input.h"
+#include "core/state.hpp"
+#include "graphics/scene.hpp"
+#include "graphics/softwareRenderer.hpp"
+#include "graphics/painterRenderer.hpp"
+#include "maths/Math.hpp"
+#include "core/input.hpp"
 
 int main() {
     EngineState state;
@@ -19,7 +20,7 @@ int main() {
     bool use_Painter = true;
 
     if (use_Painter) {
-        renderer = std::make_unique<PainterRenderer>(width, height);
+        renderer = std::make_unique<PainterRenderer>();
     }
 
     while (window.isOpen()) {

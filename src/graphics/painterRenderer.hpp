@@ -1,9 +1,5 @@
 #pragma once
-#include <SFML/Graphics.hpp>
-#include <algorithm>
-#include "core/state.h"
-#include "scene.h"
-#include "softwareRenderer.h"
+#include "softwareRenderer.hpp"
 
 class PainterRenderer : public SoftwareRenderer {
 public:

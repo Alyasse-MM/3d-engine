@@ -1,6 +1,6 @@
 #pragma once
-#include "Vector3.h"
-#include "Matrix3.h"
+#include "Vector3.hpp"
+#include "Matrix3.hpp"
 #include <SFML/System/Vector2.hpp>
 
 namespace Maths {

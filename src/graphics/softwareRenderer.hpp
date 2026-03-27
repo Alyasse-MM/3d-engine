@@ -1,9 +1,9 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <algorithm>
-#include "core/state.h"
-#include "scene.h"
-#include "maths/Vector3.h"
+#include "core/state.hpp"
+#include "scene.hpp"
+#include "maths/Vector3.hpp"
 
 struct RenderFace {
     std::vector<sf::Vector2f> points;
@@ -15,5 +15,4 @@ class SoftwareRenderer {
 public:
     virtual ~SoftwareRenderer() = default;
     virtual void render(sf::RenderWindow& window, EngineState& state, Scene& scene) = 0;
-    inline bool backfaceCulling(const std::vector<Maths::Vector3<float>>& faceVerts);
 };

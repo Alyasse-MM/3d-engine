@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "maths/Vector3.h"
+#include "maths/Vector3.hpp"
 
 struct Face {
     std::vector<int> indices;

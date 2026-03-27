@@ -1,6 +1,6 @@
-#include "graphics/Clipping.h"
+#include "graphics/Clipping.hpp"
 #include <cmath>
-#include <maths/Utils.h>
+#include <maths/Utils.hpp>
 
 using namespace Maths;
 

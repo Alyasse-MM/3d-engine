@@ -1,7 +1,7 @@
 #pragma once
-#include "softwareRenderer.h"
-#include "maths/Math.h"
-#include "graphics/Clipping.h"
+#include "softwareRenderer.hpp"
+#include "maths/Math.hpp"
+#include "graphics/Clipping.hpp"
 #include <algorithm>
 
 using namespace Maths;
