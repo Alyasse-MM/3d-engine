@@ -1,10 +1,10 @@
 #include <SFML/Graphics.hpp>
 #include "core/state.hpp"
 #include "graphics/scene.hpp"
-#include "graphics/softwareRenderer.hpp"
 #include "graphics/painterRenderer.hpp"
 #include "maths/Math.hpp"
 #include "core/input.hpp"
+#include <graphics/zbufferRenderer.hpp>
 
 int main() {
     EngineState state;
@@ -20,14 +20,12 @@ int main() {
     bool use_Painter = true;
 
     if (use_Painter) {
-        renderer = std::make_unique<PainterRenderer>(window,state);
+        renderer = std::make_unique<ZBufferRenderer>(window,state);
     }
 
     while (window.isOpen()) {
         
         InputManager::handleInput(window, state);
-
-        window.clear(sf::Color::White);
         if(renderer)
             renderer->setScene(scene);
             renderer->render();

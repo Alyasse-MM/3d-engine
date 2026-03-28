@@ -7,6 +7,7 @@
 
 struct RenderFace {
     std::vector<sf::Vector2f> points;
+    std::vector<float> zValues;
     sf::Color color;
     float avgZ;
 };

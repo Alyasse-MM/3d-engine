@@ -2,6 +2,7 @@
 #include "Vector3.hpp"
 #include "Matrix3.hpp"
 #include <SFML/System/Vector2.hpp>
+#include <graphics/softwareRenderer.hpp>
 
 namespace Maths {
     template <typename T>
@@ -77,5 +78,13 @@ namespace Maths {
         Vector3<float> world = modelRotation * v;
         Vector3<float> translated = world - cameraPos;
         return viewRotation * translated;
+    }
+
+    inline float perpProduct(sf::Vector2f start, sf::Vector2f end, sf::Vector2f point) {
+        return ((point.x - end.x)*(start.y - end.y) - (start.x - end.x)*(point.y - end.y));
+    }
+
+    inline bool insideTriangle(float vAB, float vBC, float vCA) {
+        return ((vAB <=0 && vBC <=0 && vCA <= 0) || (vAB >= 0 && vBC >= 0 && vCA >= 0));
     }
 };

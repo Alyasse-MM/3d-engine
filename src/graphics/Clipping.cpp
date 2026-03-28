@@ -8,7 +8,7 @@ namespace Graphics {
     std::vector<Vector3<float>> sutherlandHodgmanZ(const std::vector<Vector3<float>>& polygon, float z_near) {
         if (polygon.empty()) return {};
 
-        std::vector<Vector3<float>> outPoly;
+        std::vector<Vector3<float>> poly;
         Vector3<float> prev = polygon.back();
         bool prevInside = (prev.z >= z_near);
 
@@ -18,21 +18,34 @@ namespace Graphics {
             float t = (z_near - prev.z) / (curr.z - prev.z);
             if (currInside) {
                 if (!prevInside) {
-                    outPoly.push_back(Maths::lerp(prev, curr, t));
+                    poly.push_back(Maths::lerp(prev, curr, t));
                 }
-                outPoly.push_back(curr);
+                poly.push_back(curr);
             }
             else if (prevInside) {
-                outPoly.push_back(Maths::lerp(prev, curr, t));
+                poly.push_back(Maths::lerp(prev, curr, t));
             }
 
             prev = curr;
             prevInside = currInside;
         }
-        return outPoly;
+        return poly;
     }
 
-    std::vector<Vector3<float>> clipPolygon(const std::vector<Vector3<float>>& polygon, float z_near) {
-        return sutherlandHodgmanZ(polygon, z_near);
+    std::vector<std::vector<Vector3<float>>> clipPolygon(const std::vector<Vector3<float>>& polygon, float z_near) {
+        std::vector<Vector3<float>> poly{ sutherlandHodgmanZ(polygon, z_near) };
+        if (poly.size() < 3) {
+            return {};
+        }
+        std::vector<std::vector<Vector3<float>>> clipped;
+
+        for (size_t i = 1; i < poly.size() - 1; ++i) {
+            std::vector<Vector3<float>> tri;
+            tri.push_back(poly[0]);
+            tri.push_back(poly[i]);
+            tri.push_back(poly[i + 1]);
+            clipped.push_back(tri);
+        }
+        return clipped;
     }
 }
