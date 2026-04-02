@@ -6,7 +6,56 @@
 
 using namespace Maths;
 
+void ZBufferRenderer::workerLoop(int threadID, int numThreads) {
+    int sliceHeight = enginestate.windowHeight / numThreads;
+    int myStartY = threadID * sliceHeight;
+    int myEndY = (threadID == numThreads - 1) ? (enginestate.windowHeight - 1) : (myStartY + sliceHeight - 1);
+
+    std::unique_lock<std::mutex> lock(printMtx);
+    std::cout << threadID << " : " << myStartY << " ; " << myEndY << std::endl;
+    lock.unlock();
+
+    while (true) {
+        std::unique_lock<std::mutex> lock(mtx);
+        cv_start.wait(lock, [this] { return frame_ready || stop_threads; });
+        if (stop_threads) return;
+        lock.unlock();
+
+        std::cout << threadID << "-> do work" << std::endl;
+        for (const auto& f : drawList) {
+            float minY = std::min({ f.points[0].y, f.points[1].y, f.points[2].y });
+            float maxY = std::max({ f.points[0].y, f.points[1].y, f.points[2].y });
+
+            int startY = std::max(myStartY, (int)std::floor(minY));
+            int endY = std::min(myEndY, (int)std::ceil(maxY));
+
+            if (startY > endY) continue;
+
+            float minX = std::min({ f.points[0].x, f.points[1].x, f.points[2].x });
+            float maxX = std::max({ f.points[0].x, f.points[1].x, f.points[2].x });
+            int startX = std::max(0, (int)std::floor(minX));
+            int endX = std::min((int)enginestate.windowWidth - 1, (int)std::ceil(maxX));
+
+            drawTriangle(f, startX, endX, startY, endY);
+        }
+
+        lock.lock();
+        active_threads--;
+        if (active_threads == 0) {
+            frame_ready = false;
+            cv_done.notify_one();
+        }
+        lock.unlock();
+    }
+}
+
 void ZBufferRenderer::render() {
+    {
+        std::unique_lock<std::mutex> lock(mtx);
+        cv_done.wait(lock, [this] { return active_threads == 0; });
+        drawList.clear();
+    }
+
     Matrix3<float> modelRot = Matrix3<float>::getRotationX(toRadians(enginestate.model_angle_x)) * Matrix3<float>::getRotationY(toRadians(enginestate.model_angle_y));
     Matrix3<float> viewRot = Matrix3<float>::getRotationY(toRadians(-enginestate.camera_yaw));
 
@@ -29,8 +78,6 @@ void ZBufferRenderer::render() {
             triangles.push_back(tri);
         }
     }
-
-    std::vector<RenderFace> drawList;
 
     for (const auto& face : triangles) {
         std::vector<Vector3<float>> faceVerts;
@@ -62,8 +109,17 @@ void ZBufferRenderer::render() {
 
     clear();
 
-    for (const RenderFace& f : drawList) {
-        drawTriangle(f);
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        active_threads = workers.size();
+        frame_ready = true;
+    }
+    std::cout << "notity_all()" << std::endl;
+    cv_start.notify_all();
+
+    {
+        std::unique_lock<std::mutex> lock(mtx);
+        cv_done.wait(lock, [this] { return active_threads == 0; });
     }
 
     renderTexture.update(reinterpret_cast<const uint8_t*>(color_buffer.data()));
@@ -85,27 +141,13 @@ bool ZBufferRenderer::putPixel(int x, int y, float z, sf::Color color) {
     return isNewZ;
 }
 
-void ZBufferRenderer::drawTriangle(const RenderFace& triangle) {
-    if (triangle.points.size() != 3) {
-        std::cout << "not a triangle" << std::endl;
-        return;
-    }
-    float minX = std::min({ triangle.points[0].x, triangle.points[1].x, triangle.points[2].x });
-    float maxX = std::max({ triangle.points[0].x, triangle.points[1].x, triangle.points[2].x });
-    float minY = std::min({ triangle.points[0].y, triangle.points[1].y, triangle.points[2].y });
-    float maxY = std::max({ triangle.points[0].y, triangle.points[1].y, triangle.points[2].y });
-
-    int leftX = std::max(0, (int)std::floor(minX));
-    int rightX = std::min((int)enginestate.windowWidth - 1, (int)std::ceil(maxX));
-    int topY = std::max(0, (int)std::floor(minY));
-    int bottomY = std::min((int)enginestate.windowHeight - 1, (int)std::ceil(maxY));
-
+void ZBufferRenderer::drawTriangle(const RenderFace& triangle, int startX, int endX, int startY, int endY) {
     float triangleArea = perpProduct(triangle.points[0], triangle.points[1], triangle.points[2]);
 
     if (std::abs(triangleArea) < 0.000001f) return;
 
-    for (int y = topY; y <= bottomY; ++y) {
-        for (int x = leftX; x <= rightX; ++x) {
+    for (int y = startY; y <= endY; ++y) {
+        for (int x = startX; x <= endX; ++x) {
             sf::Vector2f p(x, y);
 
             float vAB = perpProduct(triangle.points[0], triangle.points[1], p);
