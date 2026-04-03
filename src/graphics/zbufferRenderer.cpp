@@ -6,7 +6,7 @@
 
 using namespace Maths;
 
-void ZBufferRenderer::workerLoop(int threadID, int numThreads) {
+void ZBufferRenderer::workerLoop(unsigned threadID, unsigned numThreads) {
     int sliceHeight = enginestate.windowHeight / numThreads;
     int myStartY = threadID * sliceHeight;
     int myEndY = (threadID == numThreads - 1) ? (enginestate.windowHeight - 1) : (myStartY + sliceHeight - 1);
@@ -21,8 +21,10 @@ void ZBufferRenderer::workerLoop(int threadID, int numThreads) {
         if (stop_threads) return;
         lock.unlock();
 
-        std::cout << threadID << "-> do work" << std::endl;
         for (const auto& f : drawList) {
+            std::unique_lock<std::mutex> lock(printMtx);
+            std::cout << threadID << "-> do work" << std::endl;
+            lock.unlock();
             float minY = std::min({ f.points[0].y, f.points[1].y, f.points[2].y });
             float maxY = std::max({ f.points[0].y, f.points[1].y, f.points[2].y });
 
@@ -50,11 +52,7 @@ void ZBufferRenderer::workerLoop(int threadID, int numThreads) {
 }
 
 void ZBufferRenderer::render() {
-    {
-        std::unique_lock<std::mutex> lock(mtx);
-        cv_done.wait(lock, [this] { return active_threads == 0; });
-        drawList.clear();
-    }
+    drawList.clear();
 
     Matrix3<float> modelRot = Matrix3<float>::getRotationX(toRadians(enginestate.model_angle_x)) * Matrix3<float>::getRotationY(toRadians(enginestate.model_angle_y));
     Matrix3<float> viewRot = Matrix3<float>::getRotationY(toRadians(-enginestate.camera_yaw));
@@ -142,6 +140,9 @@ bool ZBufferRenderer::putPixel(int x, int y, float z, sf::Color color) {
 }
 
 void ZBufferRenderer::drawTriangle(const RenderFace& triangle, int startX, int endX, int startY, int endY) {
+    if (triangle.points.size()!=3) {
+        return;
+    }
     float triangleArea = perpProduct(triangle.points[0], triangle.points[1], triangle.points[2]);
 
     if (std::abs(triangleArea) < 0.000001f) return;

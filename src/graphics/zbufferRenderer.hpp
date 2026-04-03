@@ -34,9 +34,9 @@ public:
             std::cerr << "Failed to initialize render texture!" << std::endl;
         }
         renderSprite.setTexture(renderTexture, true);
-        size_t n = std::thread::hardware_concurrency();
-        n = std::max(n, size_t(2));
-        for (int i = 0; i < n; ++i) {
+        unsigned n = std::thread::hardware_concurrency();
+        n = std::max(unsigned(n*0.75), unsigned(2));
+        for (unsigned i = 0; i < n; ++i) {
             workers.push_back(std::thread(&ZBufferRenderer::workerLoop, this, i, n));
         }
     }
@@ -53,7 +53,7 @@ public:
         }
     }
 
-    void workerLoop(int threadID, int numThreads);
+    void workerLoop(unsigned threadID, unsigned numThreads);
 
     void render();
     bool putPixel(int x, int y, float z, sf::Color color);
