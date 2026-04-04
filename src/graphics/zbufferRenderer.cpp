@@ -21,7 +21,9 @@ void ZBufferRenderer::workerLoop(unsigned threadID, unsigned numThreads) {
         if (stop_threads) return;
         lock.unlock();
 
-        for (const auto& f : drawList) {
+        for (const RenderFace f : drawList) {
+            if (f.points.size() != 3)
+                continue;
             std::unique_lock<std::mutex> lock(printMtx);
             std::cout << threadID << "-> do work" << std::endl;
             lock.unlock();
@@ -85,7 +87,7 @@ void ZBufferRenderer::render() {
 
         for (std::vector<Vector3<float>> clipped : Graphics::clipPolygon(faceVerts, enginestate.z_near))
         {
-            if (clipped.size() < 3) continue;
+            if (clipped.size() != 3) continue;
 
             std::vector<sf::Vector2f> screenPoints;
             std::vector<float> zCoords;
@@ -96,6 +98,7 @@ void ZBufferRenderer::render() {
                     zSum += v.z;
             }
 
+            std::cout << screenPoints.size() << ";" << zCoords.size() << std::endl;
             drawList.push_back(RenderFace{
                 screenPoints,
                 zCoords,
@@ -155,11 +158,16 @@ void ZBufferRenderer::drawTriangle(const RenderFace& triangle, int startX, int e
             float vBC = perpProduct(triangle.points[1], triangle.points[2], p);
             float vCA = perpProduct(triangle.points[2], triangle.points[0], p);
 
+            if(triangle.points.size()!=3)
+                std::cout << triangle.points.size() << std::endl;
+
             if (insideTriangle(vAB, vBC, vCA)) {
                 float wC = vAB / triangleArea;
                 float wA = vBC / triangleArea;
                 float wB = vCA / triangleArea;
 
+                if (triangle.points.size() != 3)
+                    std::cout << triangle.points.size() << std::endl;
                 float z = (wA * triangle.zValues[0]) +
                     (wB * triangle.zValues[1]) +
                     (wC * triangle.zValues[2]);

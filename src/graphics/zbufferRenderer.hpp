@@ -36,7 +36,8 @@ public:
         renderSprite.setTexture(renderTexture, true);
         unsigned n = std::thread::hardware_concurrency();
         n = std::max(unsigned(n*0.75), unsigned(2));
-        for (unsigned i = 0; i < n; ++i) {
+        //n = 2;
+        for (unsigned i = 0; i < n-1; ++i) {
             workers.push_back(std::thread(&ZBufferRenderer::workerLoop, this, i, n));
         }
     }
