@@ -11,22 +11,24 @@ void ZBufferRenderer::workerLoop(unsigned threadID, unsigned numThreads) {
     int myStartY = threadID * sliceHeight;
     int myEndY = (threadID == numThreads - 1) ? (enginestate.windowHeight - 1) : (myStartY + sliceHeight - 1);
 
-    std::unique_lock<std::mutex> lock(printMtx);
-    std::cout << threadID << " : " << myStartY << " ; " << myEndY << std::endl;
-    lock.unlock();
+    {
+        std::unique_lock<std::mutex> lock(printMtx);
+        std::cout << "thread " << threadID << " started with " << myStartY << " ; " << myEndY << std::endl;
+    }
 
+    unsigned previous_frame_id = 0;
     while (true) {
-        std::unique_lock<std::mutex> lock(mtx);
-        cv_start.wait(lock, [this] { return frame_ready || stop_threads; });
-        if (stop_threads) return;
-        lock.unlock();
-
+        {
+            std::unique_lock<std::mutex> lock(mtx);
+            cv_start.wait(lock, [this, previous_frame_id] {
+                return (current_frame_id > previous_frame_id) || stop_threads;
+                });
+            if (stop_threads) return;
+            previous_frame_id = current_frame_id;
+        }
         for (const RenderFace f : drawList) {
             if (f.points.size() != 3)
                 continue;
-            std::unique_lock<std::mutex> lock(printMtx);
-            std::cout << threadID << "-> do work" << std::endl;
-            lock.unlock();
             float minY = std::min({ f.points[0].y, f.points[1].y, f.points[2].y });
             float maxY = std::max({ f.points[0].y, f.points[1].y, f.points[2].y });
 
@@ -43,13 +45,13 @@ void ZBufferRenderer::workerLoop(unsigned threadID, unsigned numThreads) {
             drawTriangle(f, startX, endX, startY, endY);
         }
 
-        lock.lock();
-        active_threads--;
-        if (active_threads == 0) {
-            frame_ready = false;
-            cv_done.notify_one();
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            active_threads--;
+            if (active_threads == 0) {
+                cv_done.notify_one();
+            }
         }
-        lock.unlock();
     }
 }
 
@@ -98,7 +100,6 @@ void ZBufferRenderer::render() {
                     zSum += v.z;
             }
 
-            std::cout << screenPoints.size() << ";" << zCoords.size() << std::endl;
             drawList.push_back(RenderFace{
                 screenPoints,
                 zCoords,
@@ -113,10 +114,12 @@ void ZBufferRenderer::render() {
     {
         std::lock_guard<std::mutex> lock(mtx);
         active_threads = workers.size();
-        frame_ready = true;
+        current_frame_id++;
     }
-    std::cout << "notity_all()" << std::endl;
-    cv_start.notify_all();
+    {
+        std::unique_lock<std::mutex> lock(mtx);
+        cv_start.notify_all();
+    }
 
     {
         std::unique_lock<std::mutex> lock(mtx);
@@ -144,6 +147,7 @@ bool ZBufferRenderer::putPixel(int x, int y, float z, sf::Color color) {
 
 void ZBufferRenderer::drawTriangle(const RenderFace& triangle, int startX, int endX, int startY, int endY) {
     if (triangle.points.size()!=3) {
+        std::cout << "not a triangle" << std::endl;
         return;
     }
     float triangleArea = perpProduct(triangle.points[0], triangle.points[1], triangle.points[2]);
@@ -158,16 +162,11 @@ void ZBufferRenderer::drawTriangle(const RenderFace& triangle, int startX, int e
             float vBC = perpProduct(triangle.points[1], triangle.points[2], p);
             float vCA = perpProduct(triangle.points[2], triangle.points[0], p);
 
-            if(triangle.points.size()!=3)
-                std::cout << triangle.points.size() << std::endl;
-
             if (insideTriangle(vAB, vBC, vCA)) {
                 float wC = vAB / triangleArea;
                 float wA = vBC / triangleArea;
                 float wB = vCA / triangleArea;
 
-                if (triangle.points.size() != 3)
-                    std::cout << triangle.points.size() << std::endl;
                 float z = (wA * triangle.zValues[0]) +
                     (wB * triangle.zValues[1]) +
                     (wC * triangle.zValues[2]);

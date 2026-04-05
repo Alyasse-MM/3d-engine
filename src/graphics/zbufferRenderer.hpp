@@ -21,7 +21,7 @@ private:
 
     int active_threads = 0;
     bool stop_threads = false;
-    bool frame_ready = false;
+    unsigned current_frame_id = 0;
 
 public:
     ZBufferRenderer(sf::RenderWindow& w, EngineState& e) : SoftwareRenderer(w, e),
@@ -36,8 +36,7 @@ public:
         renderSprite.setTexture(renderTexture, true);
         unsigned n = std::thread::hardware_concurrency();
         n = std::max(unsigned(n*0.75), unsigned(2));
-        //n = 2;
-        for (unsigned i = 0; i < n-1; ++i) {
+        for (unsigned i = 0; i < n; ++i) {
             workers.push_back(std::thread(&ZBufferRenderer::workerLoop, this, i, n));
         }
     }
