@@ -1,37 +1,8 @@
 # Build
 build/
-bin/
-dist/
-lib/
-lib64/
-*.exe
-*.out
-*.app
-*.so
-*.dll
 
 # xmake / IDEs
 .xmake/
 .vscode/
-.vs/
 vs**/
-*.sln
-*.vcxproj
-*.filters
-
-# MSVC / Compiler
-*.obj
-*.o
 *.pdb
-*.ilk
-*.idb
-*.exp
-*.lib
-*.tlog
-*.lastbuildstate
-*.VC.db
-*.VC.opendb
-
-# OS
-.DS_Store
-Thumbs.db
