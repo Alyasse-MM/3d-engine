@@ -14,12 +14,12 @@ struct RenderFace {
 
 class SoftwareRenderer {
 protected:
-    EngineState& enginestate;
-    sf::RenderWindow& window;
-    Scene* scene;
+    EngineState& m_engineState;
+    sf::RenderWindow& m_window;
+    Scene* m_scene;
 public:
     virtual ~SoftwareRenderer() = default;
-    SoftwareRenderer(sf::RenderWindow& w, EngineState& e) : enginestate(e), window(w), scene(nullptr) {};
+    SoftwareRenderer(sf::RenderWindow& w, EngineState& e) : m_engineState(e), m_window(w), m_scene(nullptr) {};
     virtual void render() = 0;
-    void setScene(Scene* s) { scene = s; }
+    void setScene(Scene* s) { m_scene = s; }
 };

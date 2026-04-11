@@ -6,45 +6,44 @@
 
 using namespace Maths;
 
-inline void PainterRenderer::paintersAlgorithm(std::vector<RenderFace>& drawList) {
-    std::sort(drawList.begin(), drawList.end(), [](const RenderFace& a, const RenderFace& b) {
+inline void PainterRenderer::paintersAlgorithm(std::vector<RenderFace>& facesToDraw) {
+    std::sort(facesToDraw.begin(), facesToDraw.end(), [](const RenderFace& a, const RenderFace& b) {
         return a.avgZ > b.avgZ;
         });
 }
 
 void PainterRenderer::render() {
-    Matrix3<float> modelRot = Matrix3<float>::getRotationX(toRadians(enginestate.model_angle_x)) * Matrix3<float>::getRotationY(toRadians(enginestate.model_angle_y));
-    Matrix3<float> viewRot = Matrix3<float>::getRotationY(toRadians(-enginestate.camera_yaw));
-
-    float halfW = enginestate.windowWidth / 2.0f;
-    float halfH = enginestate.windowHeight / 2.0f;
-
-    float focalLength = Maths::calculateFocalLength(enginestate.fov, enginestate.windowWidth);
+    auto modelRotation = Matrix3<float>::getRotationX(toRadians(m_engineState.modelAngleX)) * Matrix3<float>::getRotationY(toRadians(m_engineState.modelAngleY));
+    auto viewRotation = Matrix3<float>::getRotationY(toRadians(-m_engineState.cameraYaw));
 
     std::vector<Vector3<float>> viewSpaceVertices;
-    for (const auto& v : scene->vertices) {
-        viewSpaceVertices.push_back(worldToView(v, modelRot, viewRot, enginestate.camera_pos));
+    for (const auto& v : m_scene->m_vertices) {
+        viewSpaceVertices.push_back(worldToView(v, modelRotation, viewRotation, m_engineState.cameraPosition));
     }
 
-    std::vector<Face> triangles;
+    std::vector<Face> m_faces;
 
-    for (const auto& face : scene->faces) {
+    for (const auto& face : m_scene->m_faces) {
         for (size_t i = 1; i < face.indices.size() - 1; ++i) {
             auto tri = face;
             tri.indices = { face.indices[0], face.indices[i], face.indices[i + 1] };
-            triangles.push_back(tri);
+            m_faces.push_back(tri);
         }
     }
 
-    std::vector<RenderFace> drawList;
+    float halfWidth = m_engineState.windowWidth / 2.0f;
+    float halfHeight = m_engineState.windowHeight / 2.0f;
+    float focalLength = Maths::calculateFocalLength(m_engineState.fov, m_engineState.windowWidth);
 
-    for (const auto& face : triangles) {
+    std::vector<RenderFace> facesToDraw;
+
+    for (const auto& face : m_faces) {
         std::vector<Vector3<float>> faceVerts;
-        for (int idx : face.indices) faceVerts.push_back(viewSpaceVertices[idx]);
+        for (unsigned i : face.indices) faceVerts.push_back(viewSpaceVertices[i]);
 
         if (backfaceCulling(faceVerts)) continue;
 
-        for (std::vector<Vector3<float>> clipped : Graphics::clipPolygon(faceVerts, enginestate.z_near))
+        for (std::vector<Vector3<float>> clipped : Graphics::clipPolygon(faceVerts, m_engineState.nearClipPlane))
         {
             if (clipped.size() != 3) continue;
 
@@ -52,12 +51,12 @@ void PainterRenderer::render() {
             std::vector<float> zCoords;
             float zSum = 0;
             for (const auto& v : clipped) {
-                screenPoints.push_back(perspectiveProjection(v, focalLength, halfW, halfH));
+                screenPoints.push_back(perspectiveProjection(v, focalLength, halfWidth, halfHeight));
                 zCoords.push_back(v.z),
                     zSum += v.z;
             }
 
-            drawList.push_back(RenderFace{
+            facesToDraw.push_back(RenderFace{
                 screenPoints,
                 zCoords,
                 face.color,
@@ -66,14 +65,14 @@ void PainterRenderer::render() {
         }
     }
 
-    paintersAlgorithm(drawList);
+    paintersAlgorithm(facesToDraw);
 
-    window.clear(sf::Color(148,140,140,1));
+    m_window.clear(sf::Color(148,140,140,1));
 
-    for (const auto& f : drawList) {
-        sf::ConvexShape poly(f.points.size());
-        for (size_t i = 0; i < f.points.size(); ++i) poly.setPoint(i, f.points[i]);
-        poly.setFillColor(f.color);
-        window.draw(poly);
+    for (const auto& face : facesToDraw) {
+        sf::ConvexShape poly(face.points.size());
+        for (size_t i = 0; i < face.points.size(); ++i) poly.setPoint(i, face.points[i]);
+        poly.setFillColor(face.color);
+        m_window.draw(poly);
     }
 }

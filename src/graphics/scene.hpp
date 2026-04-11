@@ -9,8 +9,8 @@ struct Face {
 
 class Scene {
 public:
-    std::vector<Maths::Vector3<float>> vertices;
-    std::vector<Face> faces;
+    std::vector<Maths::Vector3<float>> m_vertices;
+    std::vector<Face> m_faces;
 
     Scene();
 };

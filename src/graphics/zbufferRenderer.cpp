@@ -6,101 +6,125 @@
 
 using namespace Maths;
 
-void ZBufferRenderer::workerLoop(unsigned threadID, unsigned numThreads) {
-    int sliceHeight = enginestate.windowHeight / numThreads;
-    int myStartY = threadID * sliceHeight;
-    int myEndY = (threadID == numThreads - 1) ? (enginestate.windowHeight - 1) : (myStartY + sliceHeight - 1);
+void ZBufferRenderer::workerLoop(unsigned threadId, unsigned nbThreads) {
+    int sliceHeight = m_engineState.windowHeight / nbThreads;
+    int threadStartY = threadId * sliceHeight;
+    int threadEndY = (threadId == nbThreads - 1) ? (m_engineState.windowHeight - 1) : (threadStartY + sliceHeight - 1);
 
     {
-        std::unique_lock<std::mutex> lock(printMtx);
-        std::cout << "thread " << threadID << " started with " << myStartY << " ; " << myEndY << std::endl;
+        std::unique_lock<std::mutex> lock(m_printMtx);
+        std::cout << "thread " << threadId << " started with " << threadStartY << " ; " << threadEndY << std::endl;
     }
 
-    unsigned previous_frame_id = 0;
+    unsigned currentFrameId = 0;
     while (true) {
         {
-            std::unique_lock<std::mutex> lock(mtx);
-            cv_start.wait(lock, [this, previous_frame_id] {
-                return (current_frame_id > previous_frame_id) || stop_threads;
+            std::unique_lock<std::mutex> lock(m_syncMtx);
+            m_cvStart.wait(lock, [this, currentFrameId] {
+                return (m_currentFrameId > currentFrameId) || m_stopThreads;
                 });
-            if (stop_threads) return;
-            previous_frame_id = current_frame_id;
+            if (m_stopThreads) return;
+            currentFrameId = m_currentFrameId;
         }
-        for (const RenderFace f : drawList) {
-            if (f.points.size() != 3)
+        for (const RenderFace face : m_drawList) {
+            if (face.points.size() != 3)
                 continue;
-            float minY = std::min({ f.points[0].y, f.points[1].y, f.points[2].y });
-            float maxY = std::max({ f.points[0].y, f.points[1].y, f.points[2].y });
+            float faceMinY = std::min({ face.points[0].y, face.points[1].y, face.points[2].y });
+            float faceMaxY = std::max({ face.points[0].y, face.points[1].y, face.points[2].y });
 
-            int startY = std::max(myStartY, (int)std::floor(minY));
-            int endY = std::min(myEndY, (int)std::ceil(maxY));
+            int faceStartY = std::max(threadStartY, (int)std::floor(faceMinY));
+            int faceEndY = std::min(threadEndY, (int)std::ceil(faceMaxY));
 
-            if (startY > endY) continue;
+            if (faceStartY > faceEndY) continue;
 
-            float minX = std::min({ f.points[0].x, f.points[1].x, f.points[2].x });
-            float maxX = std::max({ f.points[0].x, f.points[1].x, f.points[2].x });
-            int startX = std::max(0, (int)std::floor(minX));
-            int endX = std::min((int)enginestate.windowWidth - 1, (int)std::ceil(maxX));
+            float faceMinX = std::min({ face.points[0].x, face.points[1].x, face.points[2].x });
+            float faceMaxX = std::max({ face.points[0].x, face.points[1].x, face.points[2].x });
+            int faceStartX = std::max(0, (int)std::floor(faceMinX));
+            int faceEndX = std::min((int)m_engineState.windowWidth - 1, (int)std::ceil(faceMaxX));
 
-            drawTriangle(f, startX, endX, startY, endY);
+            drawTriangle(face, faceStartX, faceEndX, faceStartY, faceEndY);
         }
 
         {
-            std::lock_guard<std::mutex> lock(mtx);
-            active_threads--;
-            if (active_threads == 0) {
-                cv_done.notify_one();
+            std::lock_guard<std::mutex> lock(m_syncMtx);
+            m_nActiveThreads--;
+            if (m_nActiveThreads == 0) {
+                m_cvDone.notify_one();
             }
         }
     }
 }
 
 void ZBufferRenderer::render() {
-    drawList.clear();
+    m_drawList.clear();
 
-    Matrix3<float> modelRot = Matrix3<float>::getRotationX(toRadians(enginestate.model_angle_x)) * Matrix3<float>::getRotationY(toRadians(enginestate.model_angle_y));
-    Matrix3<float> viewRot = Matrix3<float>::getRotationY(toRadians(-enginestate.camera_yaw));
-
-    float halfW = enginestate.windowWidth / 2.0f;
-    float halfH = enginestate.windowHeight / 2.0f;
-
-    float focalLength = Maths::calculateFocalLength(enginestate.fov, enginestate.windowWidth);
+    auto worldRotation = Matrix3<float>::getRotationX(toRadians(m_engineState.modelAngleX)) * Matrix3<float>::getRotationY(toRadians(m_engineState.modelAngleY));
+    auto camRotation = Matrix3<float>::getRotationY(toRadians(-m_engineState.cameraYaw));
 
     std::vector<Vector3<float>> viewSpaceVertices;
-    for (const auto& v : scene->vertices) {
-        viewSpaceVertices.push_back(worldToView(v, modelRot, viewRot, enginestate.camera_pos));
+    for (const auto& v : m_scene->m_vertices) {
+        viewSpaceVertices.push_back(worldToView(v, worldRotation, camRotation, m_engineState.cameraPosition));
     }
 
-    std::vector<Face> triangles;
+    std::vector<Face>* m_faces{prepareFacesToDraw(viewSpaceVertices)};
 
-    for (const Face& face : scene->faces) {
-        for (size_t i = 1; i < face.indices.size() - 1; ++i) {
+    clearBuffers();
+
+    {
+        std::lock_guard<std::mutex> lock(m_syncMtx);
+        m_nActiveThreads = m_workers.size();
+        m_currentFrameId++;
+    }
+    {
+        std::unique_lock<std::mutex> lock(m_syncMtx);
+        m_cvStart.notify_all();
+    }
+
+    {
+        std::unique_lock<std::mutex> lock(m_syncMtx);
+        m_cvDone.wait(lock, [this] { return m_nActiveThreads == 0; });
+    }
+
+    m_renderTexture.update(reinterpret_cast<const uint8_t*>(m_colorBuffer.data()));
+    m_window.clear(sf::Color::Black);
+    m_window.draw(m_renderSprite);
+}
+
+std::vector<Face>* ZBufferRenderer::prepareFacesToDraw(std::vector<Vector3<float>>& viewSpaceVertices) {
+    std::vector<Face>* facesToDraw = new std::vector<Face>();
+
+    for (const Face& face : m_scene->m_faces) {
+        for (unsigned i = 1; i < face.indices.size() - 1; ++i) {
             Face tri = face;
             tri.indices = { face.indices[0], face.indices[i], face.indices[i + 1] };
-            triangles.push_back(tri);
+            facesToDraw->push_back(tri);
         }
     }
 
-    for (const auto& face : triangles) {
+    float focalLength = Maths::calculateFocalLength(m_engineState.fov, m_engineState.windowWidth);
+    float halfWidth = m_engineState.windowWidth / 2.0f;
+    float halfHeight = m_engineState.windowHeight / 2.0f;
+
+    for (const auto& face : *facesToDraw) {
         std::vector<Vector3<float>> faceVerts;
-        for (int idx : face.indices) faceVerts.push_back(viewSpaceVertices[idx]);
+        for (unsigned i : face.indices) faceVerts.push_back(viewSpaceVertices[i]);
 
         if (backfaceCulling(faceVerts)) continue;
 
-        for (std::vector<Vector3<float>> clipped : Graphics::clipPolygon(faceVerts, enginestate.z_near))
+        for (std::vector<Vector3<float>> clipped : Graphics::clipPolygon(faceVerts, m_engineState.nearClipPlane))
         {
             if (clipped.size() != 3) continue;
 
             std::vector<sf::Vector2f> screenPoints;
             std::vector<float> zCoords;
             float zSum = 0;
-            for (const auto& v : clipped) {
-                screenPoints.push_back(perspectiveProjection(v, focalLength, halfW, halfH));
-                zCoords.push_back(v.z),
-                    zSum += v.z;
+            for (const auto& vertex : clipped) {
+                screenPoints.push_back(perspectiveProjection(vertex, focalLength, halfWidth, halfHeight));
+                zCoords.push_back(vertex.z),
+                    zSum += vertex.z;
             }
 
-            drawList.push_back(RenderFace{
+            m_drawList.push_back(RenderFace{
                 screenPoints,
                 zCoords,
                 face.color,
@@ -109,38 +133,19 @@ void ZBufferRenderer::render() {
         }
     }
 
-    clear();
-
-    {
-        std::lock_guard<std::mutex> lock(mtx);
-        active_threads = workers.size();
-        current_frame_id++;
-    }
-    {
-        std::unique_lock<std::mutex> lock(mtx);
-        cv_start.notify_all();
-    }
-
-    {
-        std::unique_lock<std::mutex> lock(mtx);
-        cv_done.wait(lock, [this] { return active_threads == 0; });
-    }
-
-    renderTexture.update(reinterpret_cast<const uint8_t*>(color_buffer.data()));
-    window.clear(sf::Color::Black);
-    window.draw(renderSprite);
+    return facesToDraw;
 }
 
 bool ZBufferRenderer::putPixel(int x, int y, float z, sf::Color color) {
-    if (x < 0 || x >= enginestate.windowWidth || y < 0 || y >= enginestate.windowHeight) {
+    if (x < 0 || x >= m_engineState.windowWidth || y < 0 || y >= m_engineState.windowHeight) {
         return false;
     }
-    int index = y * enginestate.windowWidth + x;
+    int i = y * m_engineState.windowWidth + x;
 
-    bool isNewZ = z < z_buffer[index];
+    bool isNewZ = z < depthBuffers[i];
     if (isNewZ) {
-        z_buffer[index] = z;
-        color_buffer[index] = colorToUint32(color);
+        depthBuffers[i] = z;
+        m_colorBuffer[i] = colorToUint32(color);
     }
     return isNewZ;
 }
@@ -156,20 +161,20 @@ void ZBufferRenderer::drawTriangle(const RenderFace& triangle, int startX, int e
 
     for (int y = startY; y <= endY; ++y) {
         for (int x = startX; x <= endX; ++x) {
-            sf::Vector2f p(x, y);
+            sf::Vector2f pixel(x, y);
 
-            float vAB = perpProduct(triangle.points[0], triangle.points[1], p);
-            float vBC = perpProduct(triangle.points[1], triangle.points[2], p);
-            float vCA = perpProduct(triangle.points[2], triangle.points[0], p);
+            float valueAB = perpProduct(triangle.points[0], triangle.points[1], pixel);
+            float valueBC = perpProduct(triangle.points[1], triangle.points[2], pixel);
+            float valueCA = perpProduct(triangle.points[2], triangle.points[0], pixel);
 
-            if (insideTriangle(vAB, vBC, vCA)) {
-                float wC = vAB / triangleArea;
-                float wA = vBC / triangleArea;
-                float wB = vCA / triangleArea;
+            if (insideTriangle(valueAB, valueBC, valueCA)) {
+                float weightC = valueAB / triangleArea;
+                float weightA = valueBC / triangleArea;
+                float weightB = valueCA / triangleArea;
 
-                float z = (wA * triangle.zValues[0]) +
-                    (wB * triangle.zValues[1]) +
-                    (wC * triangle.zValues[2]);
+                float z = (weightA * triangle.zValues[0]) +
+                    (weightB * triangle.zValues[1]) +
+                    (weightC * triangle.zValues[2]);
 
                 putPixel(x, y, z, triangle.color);
             }
@@ -177,7 +182,7 @@ void ZBufferRenderer::drawTriangle(const RenderFace& triangle, int startX, int e
     }
 }
 
-void ZBufferRenderer::clear() {
-    std::fill(color_buffer.begin(), color_buffer.end(), 0xff949494);
-    std::fill(z_buffer.begin(), z_buffer.end(), 10000.0f);
+void ZBufferRenderer::clearBuffers() {
+    std::fill(m_colorBuffer.begin(), m_colorBuffer.end(), 0xff949494);
+    std::fill(depthBuffers.begin(), depthBuffers.end(), 10000.0f);
 }

@@ -1,7 +1,7 @@
 #include "scene.hpp"
 
 Scene::Scene() {
-    vertices = {
+    m_vertices = {
         {-1, -1, -1}, {1, -1, -1}, {1, 1, -1}, {-1, 1, -1},
         {-1, -1, 1}, {1, -1, 1}, {1, 1, 1}, {-1, 1, 1},
 
@@ -9,7 +9,7 @@ Scene::Scene() {
         {4, -1, 6}, {6, -1, 6}, {6, 1, 6}, {4, 1, 6}
     };
 
-    faces = {
+    m_faces = {
         {{0, 3, 2, 1}, sf::Color::Red},
         {{4, 5, 6, 7}, sf::Color::Cyan},
         {{0, 4, 7, 3}, sf::Color::Green},

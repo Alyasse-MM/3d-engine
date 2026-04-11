@@ -8,18 +8,20 @@
 
 int main() {
     EngineState state;
-    Scene* scene = new Scene;
+    Scene* scene = new Scene();
     std::unique_ptr<SoftwareRenderer> renderer;
 
     sf::ContextSettings settings;
-    settings.antiAliasingLevel = state.antialiasinglevel;
+    settings.antiAliasingLevel = state.antiAliasingLevel;
 
     sf::RenderWindow window(sf::VideoMode({state.windowWidth, state.windowHeight}), "3D Engine", sf::Style::Default, sf::State::Windowed, settings);
     window.setFramerateLimit(60);
 
-    bool use_Painter = true;
+    bool usePainter = false;
 
-    if (use_Painter) {
+    if (usePainter) {
+        renderer = std::make_unique<PainterRenderer>(window, state);
+    }else{
         renderer = std::make_unique<ZBufferRenderer>(window,state);
     }
 

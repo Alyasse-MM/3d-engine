@@ -5,35 +5,35 @@
 using namespace Maths;
 
 namespace Graphics {
-    std::vector<Vector3<float>> sutherlandHodgmanZ(const std::vector<Vector3<float>>& polygon, float z_near) {
+    std::vector<Vector3<float>> sutherlandHodgmanZ(const std::vector<Vector3<float>>& polygon, float nearClipPlane) {
         if (polygon.empty()) return {};
 
-        std::vector<Vector3<float>> poly;
-        Vector3<float> prev = polygon.back();
-        bool prevInside = (prev.z >= z_near);
+        std::vector<Vector3<float>> clippedVertices;
+        Vector3<float> edgeStart = polygon.back();
+        bool edgeStartInside = (edgeStart.z >= nearClipPlane);
 
-        for (const auto& curr : polygon) {
-            bool currInside = (curr.z >= z_near);
+        for (const auto& edgeEnd : polygon) {
+            bool edgeEndInside = (edgeEnd.z >= nearClipPlane);
 
-            float t = (z_near - prev.z) / (curr.z - prev.z);
-            if (currInside) {
-                if (!prevInside) {
-                    poly.push_back(Maths::lerp(prev, curr, t));
+            float intersectionRatio = (nearClipPlane - edgeStart.z) / (edgeEnd.z - edgeStart.z);
+            if (edgeEndInside) {
+                if (!edgeStartInside) {
+                    clippedVertices.push_back(Maths::lerp(edgeStart, edgeEnd, intersectionRatio));
                 }
-                poly.push_back(curr);
+                clippedVertices.push_back(edgeEnd);
             }
-            else if (prevInside) {
-                poly.push_back(Maths::lerp(prev, curr, t));
+            else if (edgeStartInside) {
+                clippedVertices.push_back(Maths::lerp(edgeStart, edgeEnd, intersectionRatio));
             }
 
-            prev = curr;
-            prevInside = currInside;
+            edgeStart = edgeEnd;
+            edgeStartInside = edgeEndInside;
         }
-        return poly;
+        return clippedVertices;
     }
 
-    std::vector<std::vector<Vector3<float>>> clipPolygon(const std::vector<Vector3<float>>& polygon, float z_near) {
-        std::vector<Vector3<float>> poly{ sutherlandHodgmanZ(polygon, z_near) };
+    std::vector<std::vector<Vector3<float>>> clipPolygon(const std::vector<Vector3<float>>& polygon, float nearClipPlane) {
+        std::vector<Vector3<float>> poly{ sutherlandHodgmanZ(polygon, nearClipPlane) };
         if (poly.size() < 3) {
             return {};
         }

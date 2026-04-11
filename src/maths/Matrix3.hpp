@@ -3,9 +3,9 @@
 namespace Maths {
     template <typename T>
     struct Matrix3 {
-        T m[9] = { 0 };
+        T data[9] = { 0 };
 
-        T& operator()(int row, int col) { return m[row * 3 + col]; }
+        T& operator()(int row, int col) { return data[row * 3 + col]; }
 
         static Matrix3 getRotationX(T theta) {
             T c = std::cos(theta);

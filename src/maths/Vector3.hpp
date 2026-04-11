@@ -5,12 +5,12 @@ namespace Maths {
     struct Vector3 {
         T x, y, z;
 
-        Vector3 operator+(const Vector3& other) const {
-            return { x + other.x, y + other.y, z + other.z };
+        Vector3 operator+(const Vector3& v) const {
+            return { x + v.x, y + v.y, z + v.z };
         }
 
-        Vector3 operator-(const Vector3& other) const {
-            return { x - other.x, y - other.y, z - other.z };
+        Vector3 operator-(const Vector3& v) const {
+            return { x - v.x, y - v.y, z - v.z };
         }
 
         Vector3 operator*(T scalar) const {

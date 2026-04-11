@@ -8,11 +8,11 @@ namespace Maths {
     template <typename T>
     Matrix3<T> operator*(const Matrix3<T>& A, const Matrix3<T>& B) {
         Matrix3<T> result;
-        for (int r = 0; r < 3; r++) {
-            for (int c = 0; c < 3; c++) {
-                result(r, c) = A.m[r * 3 + 0] * B.m[0 * 3 + c] +
-                    A.m[r * 3 + 1] * B.m[1 * 3 + c] +
-                    A.m[r * 3 + 2] * B.m[2 * 3 + c];
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                result(row, col) = A.data[row * 3 + 0] * B.data[0 * 3 + col] +
+                    A.data[row * 3 + 1] * B.data[1 * 3 + col] +
+                    A.data[row * 3 + 2] * B.data[2 * 3 + col];
             }
         }
         return result;
@@ -21,9 +21,9 @@ namespace Maths {
     template <typename T>
     Vector3<T> operator*(const Matrix3<T>& mat, const Vector3<T>& v) {
         return {
-            mat.m[0] * v.x + mat.m[1] * v.y + mat.m[2] * v.z,
-            mat.m[3] * v.x + mat.m[4] * v.y + mat.m[5] * v.z,
-            mat.m[6] * v.x + mat.m[7] * v.y + mat.m[8] * v.z
+            mat.data[0] * v.x + mat.data[1] * v.y + mat.data[2] * v.z,
+            mat.data[3] * v.x + mat.data[4] * v.y + mat.data[5] * v.z,
+            mat.data[6] * v.x + mat.data[7] * v.y + mat.data[8] * v.z
         };
     }
 
@@ -45,10 +45,10 @@ namespace Maths {
         return degrees * 3.14159f / 180.0f;
     };
 
-    inline bool backfaceCulling(const std::vector<Vector3<float>>& faceVerts) {
-        if (faceVerts.size() >= 3) {
-            Vector3<float> normal = cross(faceVerts[1] - faceVerts[0], faceVerts[2] - faceVerts[0]);
-            return (dot(normal, faceVerts[0]) >= 0);
+    inline bool backfaceCulling(const std::vector<Vector3<float>>& faceVertices) {
+        if (faceVertices.size() >= 3) {
+            Vector3<float> normal = cross(faceVertices[1] - faceVertices[0], faceVertices[2] - faceVertices[0]);
+            return (dot(normal, faceVertices[0]) >= 0);
         }
         return false;
     }
@@ -73,10 +73,10 @@ namespace Maths {
     inline Vector3<float> worldToView(const Vector3<float>& v,
         const Matrix3<float>& modelRotation,
         const Matrix3<float>& viewRotation,
-        const Vector3<float>& cameraPos)
+        const Vector3<float>& cameraPosition)
     {
         Vector3<float> world = modelRotation * v;
-        Vector3<float> translated = world - cameraPos;
+        Vector3<float> translated = world - cameraPosition;
         return viewRotation * translated;
     }
 
