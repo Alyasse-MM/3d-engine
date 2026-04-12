@@ -1,38 +1,54 @@
-#include "graphics/Clipping.h"
+#include "graphics/Clipping.hpp"
 #include <cmath>
-#include <maths/Utils.h>
+#include <maths/Utils.hpp>
 
-using namespace Maths;
+namespace al3d
+{
+    using namespace Maths;
 
-namespace Graphics {
-    inline std::vector<Vector3<float>> sutherlandHodgmanZ(const std::vector<Vector3<float>>& polygon, float z_near) {
-        if (polygon.empty()) return {};
+    namespace Graphics {
+        std::vector<Vector3<float>> sutherlandHodgmanZ(const std::vector<Vector3<float>>& polygon, float nearClipPlane) {
+            if (polygon.empty()) return {};
 
-        std::vector<Vector3<float>> outPoly;
-        Vector3<float> prev = polygon.back();
-        bool prevInside = (prev.z >= z_near);
+            std::vector<Vector3<float>> clippedVertices;
+            Vector3<float> edgeStart = polygon.back();
+            bool edgeStartInside = (edgeStart.z >= nearClipPlane);
 
-        for (const auto& curr : polygon) {
-            bool currInside = (curr.z >= z_near);
+            for (const auto& edgeEnd : polygon) {
+                bool edgeEndInside = (edgeEnd.z >= nearClipPlane);
 
-            float t = (z_near - prev.z) / (curr.z - prev.z);
-            if (currInside) {
-                if (!prevInside) {
-                    outPoly.push_back(Maths::lerp(prev, curr, t));
+                float intersectionRatio = (nearClipPlane - edgeStart.z) / (edgeEnd.z - edgeStart.z);
+                if (edgeEndInside) {
+                    if (!edgeStartInside) {
+                        clippedVertices.push_back(Maths::lerp(edgeStart, edgeEnd, intersectionRatio));
+                    }
+                    clippedVertices.push_back(edgeEnd);
                 }
-                outPoly.push_back(curr);
-            }
-            else if (prevInside) {
-                outPoly.push_back(Maths::lerp(prev, curr, t));
-            }
+                else if (edgeStartInside) {
+                    clippedVertices.push_back(Maths::lerp(edgeStart, edgeEnd, intersectionRatio));
+                }
 
-            prev = curr;
-            prevInside = currInside;
+                edgeStart = edgeEnd;
+                edgeStartInside = edgeEndInside;
+            }
+            return clippedVertices;
         }
-        return outPoly;
-    }
 
-    std::vector<Vector3<float>> clipPolygon(const std::vector<Vector3<float>>& polygon, float z_near) {
-        return sutherlandHodgmanZ(polygon, z_near);
+        std::vector<std::vector<Vector3<float>>> clipPolygon(const std::vector<Vector3<float>>& polygon, float nearClipPlane) {
+            std::vector<Vector3<float>> poly{ sutherlandHodgmanZ(polygon, nearClipPlane) };
+            if (poly.size() < 3) {
+                return {};
+            }
+            std::vector<std::vector<Vector3<float>>> clipped;
+
+            for (size_t i = 1; i < poly.size() - 1; ++i) {
+                std::vector<Vector3<float>> tri;
+                tri.push_back(poly[0]);
+                tri.push_back(poly[i]);
+                tri.push_back(poly[i + 1]);
+                clipped.push_back(tri);
+            }
+            return clipped;
+        }
     }
 }

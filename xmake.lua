@@ -7,7 +7,7 @@ target("3d-engine")
     set_languages("c++17")
     add_includedirs("src")
     add_files("src/**.cpp")
-    add_headerfiles("src/**.h")
+    add_headerfiles("src/**.h", "src/**.hpp")
     add_packages("sfml")
 
 task("vsrefresh")

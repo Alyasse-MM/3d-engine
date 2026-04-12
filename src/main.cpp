@@ -1,27 +1,39 @@
 #include <SFML/Graphics.hpp>
-#include "core/state.h"
-#include "graphics/scene.h"
-#include "graphics/renderer.h"
-#include "maths/Math.h"
-#include "core/input.h"
+#include "core/state.hpp"
+#include "graphics/scene.hpp"
+#include "graphics/painterRenderer.hpp"
+#include "maths/Math.hpp"
+#include "core/input.hpp"
+#include <graphics/zbufferRenderer.hpp>
+
+using namespace al3d;
 
 int main() {
     EngineState state;
-    Scene scene;
-    Renderer renderer;
+    Scene* scene = new Scene();
+    std::unique_ptr<SoftwareRenderer> renderer;
 
     sf::ContextSettings settings;
-    settings.antiAliasingLevel = state.antialiasinglevel;
+    settings.antiAliasingLevel = state.antiAliasingLevel;
 
-    sf::RenderWindow window(sf::VideoMode({state.windowWidth, state.windowHeight}), "3D Engine", sf::Style::Default, sf::State::Windowed, settings);
+    sf::RenderWindow window(sf::VideoMode({ state.windowWidth, state.windowHeight }), "3D Engine", sf::Style::Default, sf::State::Windowed, settings);
     window.setFramerateLimit(60);
 
-    while (window.isOpen()) {
-        
-        InputManager::handleInput(window, state);
+    bool usePainter = false;
 
-        window.clear(sf::Color::White);
-        renderer.render(window, state, scene);
+    if (usePainter) {
+        renderer = std::make_unique<PainterRenderer>(window, state);
+    }
+    else {
+        renderer = std::make_unique<ZBufferRenderer>(window, state);
+    }
+
+    while (window.isOpen()) {
+
+        InputManager::handleInput(window, state);
+        if (renderer)
+            renderer->setScene(scene);
+        renderer->render();
         window.display();
     }
 
