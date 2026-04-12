@@ -1,3 +1,7 @@
-namespace Maths {
+namespace al3d
+{
+	namespace Maths
+	{
 
+	}
 }

@@ -6,6 +6,8 @@
 #include "core/input.hpp"
 #include <graphics/zbufferRenderer.hpp>
 
+using namespace al3d;
+
 int main() {
     EngineState state;
     Scene* scene = new Scene();
@@ -14,23 +16,24 @@ int main() {
     sf::ContextSettings settings;
     settings.antiAliasingLevel = state.antiAliasingLevel;
 
-    sf::RenderWindow window(sf::VideoMode({state.windowWidth, state.windowHeight}), "3D Engine", sf::Style::Default, sf::State::Windowed, settings);
+    sf::RenderWindow window(sf::VideoMode({ state.windowWidth, state.windowHeight }), "3D Engine", sf::Style::Default, sf::State::Windowed, settings);
     window.setFramerateLimit(60);
 
     bool usePainter = false;
 
     if (usePainter) {
         renderer = std::make_unique<PainterRenderer>(window, state);
-    }else{
-        renderer = std::make_unique<ZBufferRenderer>(window,state);
+    }
+    else {
+        renderer = std::make_unique<ZBufferRenderer>(window, state);
     }
 
     while (window.isOpen()) {
-        
+
         InputManager::handleInput(window, state);
-        if(renderer)
+        if (renderer)
             renderer->setScene(scene);
-            renderer->render();
+        renderer->render();
         window.display();
     }
 

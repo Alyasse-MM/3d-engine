@@ -4,4 +4,7 @@
 #include "graphics/Clipping.hpp"
 #include <algorithm>
 
-using namespace Maths;
+namespace al3d
+{
+	using namespace Maths;
+}

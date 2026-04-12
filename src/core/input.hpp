@@ -4,7 +4,10 @@
 #include <cmath>
 #include "state.hpp"
 
-class InputManager {
-public:
-    static void handleInput(sf::RenderWindow& window, EngineState& state);
-};
+namespace al3d
+{
+    class InputManager {
+    public:
+        static void handleInput(sf::RenderWindow& window, EngineState& state);
+    };
+}
