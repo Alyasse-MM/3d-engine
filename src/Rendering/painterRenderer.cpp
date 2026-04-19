@@ -1,6 +1,6 @@
 #include "painterRenderer.hpp"
-#include "maths/Math.hpp"
-#include "graphics/Clipping.hpp"
+#include "Maths/Maths.hpp"
+#include "Rendering/Clipping.hpp"
 #include <algorithm>
 #include <iostream>
 
@@ -45,7 +45,7 @@ namespace al3d
 
             if (backfaceCulling(faceVerts)) continue;
 
-            for (std::vector<Vector3<float>> clipped : Graphics::clipPolygon(faceVerts, m_engineState.nearClipPlane))
+            for (std::vector<Vector3<float>> clipped : Rendering::clipPolygon(faceVerts, m_engineState.nearClipPlane))
             {
                 if (clipped.size() != 3) continue;
 

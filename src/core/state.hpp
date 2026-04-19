@@ -1,5 +1,5 @@
 #pragma once
-#include "maths/Vector3.hpp"
+#include "Maths/Vector3.hpp"
 
 namespace al3d
 {

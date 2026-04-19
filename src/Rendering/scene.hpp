@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "maths/Vector3.hpp"
+#include "Maths/Vector3.hpp"
 
 namespace al3d
 {

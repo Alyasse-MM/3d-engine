@@ -1,10 +1,10 @@
 #include <SFML/Graphics.hpp>
-#include "core/state.hpp"
-#include "graphics/scene.hpp"
-#include "graphics/painterRenderer.hpp"
-#include "maths/Math.hpp"
-#include "core/input.hpp"
-#include <graphics/zbufferRenderer.hpp>
+#include "Core/state.hpp"
+#include "Rendering/scene.hpp"
+#include "Rendering/painterRenderer.hpp"
+#include "Maths/Maths.hpp"
+#include "Core/input.hpp"
+#include <Rendering/zbufferRenderer.hpp>
 
 using namespace al3d;
 

@@ -2,7 +2,7 @@
 #include "Vector3.hpp"
 #include "Matrix3.hpp"
 #include <SFML/System/Vector2.hpp>
-#include <graphics/softwareRenderer.hpp>
+#include <Rendering/softwareRenderer.hpp>
 
 namespace al3d
 {

@@ -1,5 +1,5 @@
 #include "input.hpp"
-#include "maths/Utils.hpp"
+#include "Maths/Utils.hpp"
 
 namespace al3d
 {
