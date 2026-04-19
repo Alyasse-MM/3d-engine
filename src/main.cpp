@@ -5,12 +5,14 @@
 #include "Maths/Maths.hpp"
 #include "Core/input.hpp"
 #include <Rendering/zbufferRenderer.hpp>
+#include "Core/Mesh.hpp"
 
 using namespace al3d;
 
 int main() {
     EngineState state;
-    Scene* scene = new Scene();
+    Rendering::Scene* scene = new Rendering::Scene();
+    scene->createMesh("D:\\Fichiers\\Projets_persos\\Programming_Projects\\GitHub\\al_3d\\resources\\references\\untitled.obj");
     std::unique_ptr<SoftwareRenderer> renderer;
 
     sf::ContextSettings settings;

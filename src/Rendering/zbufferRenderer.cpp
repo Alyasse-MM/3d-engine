@@ -7,6 +7,7 @@
 namespace al3d
 {
     using namespace Maths;
+    using Face = Rendering::Face;
 
     void ZBufferRenderer::workerLoop(unsigned threadId, unsigned nbThreads) {
         int sliceHeight = m_engineState.windowHeight / nbThreads;

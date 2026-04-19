@@ -23,7 +23,7 @@ namespace al3d
             viewSpaceVertices.push_back(worldToView(v, modelRotation, viewRotation, m_engineState.cameraPosition));
         }
 
-        std::vector<Face> m_faces;
+        std::vector<Rendering::Face> m_faces;
 
         for (const auto& face : m_scene->m_faces) {
             for (size_t i = 1; i < face.indices.size() - 1; ++i) {

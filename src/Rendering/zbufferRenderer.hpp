@@ -26,7 +26,7 @@ namespace al3d
         bool m_stopThreads = false;
         unsigned m_currentFrameId = 0;
 
-        std::vector<Face>* prepareFacesToDraw(std::vector<Maths::Vector3<float>>& viewSpaceVertices);
+        std::vector<Rendering::Face>* prepareFacesToDraw(std::vector<Maths::Vector3<float>>& viewSpaceVertices);
         inline uint32_t colorToUint32(sf::Color color) {
             return (uint32_t)(color.r | (color.g << 8) | (color.b << 16) | (color.a << 24));
         }

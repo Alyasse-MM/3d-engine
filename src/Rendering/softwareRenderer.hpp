@@ -18,11 +18,11 @@ namespace al3d
     protected:
         EngineState& m_engineState;
         sf::RenderWindow& m_window;
-        Scene* m_scene;
+        Rendering::Scene* m_scene;
     public:
         virtual ~SoftwareRenderer() = default;
         SoftwareRenderer(sf::RenderWindow& w, EngineState& e) : m_engineState(e), m_window(w), m_scene(nullptr) {};
         virtual void render() = 0;
-        void setScene(Scene* s) { m_scene = s; }
+        void setScene(Rendering::Scene* s) { m_scene = s; }
     };
 }
