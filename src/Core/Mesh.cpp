@@ -28,36 +28,46 @@ namespace al3d {
                 else if (lineType == "vn") {
                     float x, y, z;
                     lineStream >> x >> y >> z;
-                    tempNormals.push_back({ x, y, z });
+                    m_normals.push_back({ x, y, z });
                 }
                 else if (lineType == "f") {
                     std::string vertexChunk;
-                    std::vector<int> indices;
+                    std::vector<int> vertices_indices, normals_indices;
                     while (lineStream >> vertexChunk) {
                         std::stringstream ss(vertexChunk);
                         std::string segment;
 
-                        // Only the vertex indice is used. Normal and texture indices are ignored for now.
+                        // Only the vertex and normal indices are used. Texture indices are ignored for now.
                         if (std::getline(ss, segment, '/')) {
                             if (!segment.empty()) {
-                                indices.push_back(std::stoi(segment) - 1);
+                                vertices_indices.push_back(std::stoi(segment) - 1);
+                            }
+                        }
+                        if (std::getline(ss, segment, '/')) {
+                            if (!segment.empty()) {
+                                normals_indices.push_back(std::stoi(segment) - 1);
                             }
                         }
                     }
 
-                    if (indices.size() > 3) {
-                        for (size_t i = 1; i < indices.size() - 1; ++i) {
-                            m_indices.push_back(indices[0]);
-                            m_indices.push_back(indices[i]);
-                            m_indices.push_back(indices[i + 1]);
+                    if (vertices_indices.size() > 3) {
+                        for (size_t i = 1; i < vertices_indices.size() - 1; ++i) {
+                            m_vertices_indices.push_back(vertices_indices[0]);
+                            m_normals_indices.push_back(normals_indices[0]);
+                            m_vertices_indices.push_back(vertices_indices[i]);
+                            m_normals_indices.push_back(normals_indices[i]);
+                            m_vertices_indices.push_back(vertices_indices[i + 1]);
+                            m_normals_indices.push_back(normals_indices[i + 1]);
                         }
                     }
-                    else if (indices.size() != 3) {
+                    else if (vertices_indices.size() < 3) {
                         throw std::runtime_error("Failed to open file: " + filePath);
                     }
                     else {
-                        for (unsigned i = 0; i < 3; i++)
-                            m_indices.push_back(indices[i]);
+                        for (unsigned i = 0; i < 3; i++){
+                            m_vertices_indices.push_back(vertices_indices[i]);
+                            m_normals_indices.push_back(normals_indices[i]);
+                        }
                     }
                 }
             }

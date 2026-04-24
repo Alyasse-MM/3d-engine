@@ -12,7 +12,7 @@ using namespace al3d;
 int main() {
     EngineState state;
     Rendering::Scene* scene = new Rendering::Scene();
-    scene->createMesh("D:\\Fichiers\\Projets_persos\\Programming_Projects\\GitHub\\al_3d\\resources\\references\\untitled.obj");
+    scene->importMesh("D:\\Fichiers\\Projets_persos\\Programming_Projects\\GitHub\\al_3d\\resources\\references\\untitled.obj");
     std::unique_ptr<SoftwareRenderer> renderer;
 
     sf::ContextSettings settings;

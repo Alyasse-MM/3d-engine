@@ -18,7 +18,7 @@ namespace al3d {
             std::vector<std::shared_ptr<Mesh>> m_meshes;
 
             Scene();
-            std::shared_ptr<Mesh> createMesh(const std::string& path) {
+            std::shared_ptr<Mesh> importMesh(const std::string& path) {
                 auto newMesh = std::make_shared<Mesh>(path);
                 m_meshes.push_back(newMesh);
                 return newMesh;
