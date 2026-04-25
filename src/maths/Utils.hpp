@@ -47,12 +47,18 @@ namespace al3d
             return degrees * 3.14159f / 180.0f;
         };
 
-        inline bool backfaceCulling(const std::vector<Vector3<float>>& faceVertices) {
-            if (faceVertices.size() >= 3) {
-                Vector3<float> normal = cross(faceVertices[1] - faceVertices[0], faceVertices[2] - faceVertices[0]);
-                return (dot(normal, faceVertices[0]) >= 0);
-            }
-            return false;
+        inline bool backfaceCulling(const std::vector<Vector3<float>>& vertices,
+            const std::vector<Vector3<float>>& normals,
+            const Vector3<float>& cameraPos) {
+
+            Vector3<float> faceNormal = (normals[0] + normals[1] + normals[2]) / 3.0f;
+
+            Vector3<float> faceCenter = (vertices[0] + vertices[1] + vertices[2]) / 3.0f;
+
+            Vector3<float> viewVector = cameraPos - faceCenter;
+
+            // 3. Dot Product: If > 0, the face is pointing toward the camera
+            return (dot(faceNormal, viewVector) > 0);
         }
 
         inline sf::Vector2f perspectiveProjection(const Vector3<float>& v, float focalLength, float centerX, float centerY) {
@@ -80,6 +86,17 @@ namespace al3d
             Vector3<float> world = modelRotation * v;
             Vector3<float> translated = world - cameraPosition;
             return viewRotation * translated;
+        }
+        
+        inline Vector3<float> worldToViewNormal(const Vector3<float>& n,
+            const Matrix3<float>& modelRotation,
+            const Matrix3<float>& viewRotation)
+        {
+            Vector3<float> worldNormal = modelRotation * n;
+
+            Vector3<float> viewNormal = viewRotation * worldNormal;
+
+            return al3d::Maths::Vector3<float>::normalize(viewNormal);
         }
 
         inline float perpProduct(sf::Vector2f start, sf::Vector2f end, sf::Vector2f point) {

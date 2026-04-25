@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include "Color.hpp"
 
 namespace al3d {
     namespace Core {
@@ -43,6 +44,7 @@ namespace al3d {
                                 vertices_indices.push_back(std::stoi(segment) - 1);
                             }
                         }
+                        std::getline(ss, segment, '/');
                         if (std::getline(ss, segment, '/')) {
                             if (!segment.empty()) {
                                 normals_indices.push_back(std::stoi(segment) - 1);
@@ -58,6 +60,7 @@ namespace al3d {
                             m_normals_indices.push_back(normals_indices[i]);
                             m_vertices_indices.push_back(vertices_indices[i + 1]);
                             m_normals_indices.push_back(normals_indices[i + 1]);
+                            m_faces_colors.push_back(getRandomColor());
                         }
                     }
                     else if (vertices_indices.size() < 3) {
@@ -67,6 +70,7 @@ namespace al3d {
                         for (unsigned i = 0; i < 3; i++){
                             m_vertices_indices.push_back(vertices_indices[i]);
                             m_normals_indices.push_back(normals_indices[i]);
+                            m_faces_colors.push_back(getRandomColor());
                         }
                     }
                 }
@@ -74,5 +78,22 @@ namespace al3d {
 	    }
 
 	    Mesh::~Mesh() {};
+
+        const std::vector<Maths::Vector3<float>> Mesh::getVertices() {
+            return m_vertices;
+        }
+        const std::vector<unsigned> Mesh::getFacesIndices() {
+            return m_vertices_indices;
+        }
+        const std::vector<Maths::Vector3<float>> Mesh::getNormals() {
+            return m_normals;
+        }
+        const std::vector<unsigned> Mesh::getNormalsIndices() {
+            return m_normals_indices;
+        }
+
+        sf::Color Mesh::getFaceColor(int id) {
+            return m_faces_colors[id];
+        }
     }
 }

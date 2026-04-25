@@ -12,8 +12,8 @@ using namespace al3d;
 int main() {
     EngineState state;
     Rendering::Scene* scene = new Rendering::Scene();
-    scene->importMesh("D:\\Fichiers\\Projets_persos\\Programming_Projects\\GitHub\\al_3d\\resources\\references\\untitled.obj");
-    std::unique_ptr<SoftwareRenderer> renderer;
+    scene->importMesh("D:\\Fichiers\\Projets_persos\\Programming_Projects\\GitHub\\al_3d\\resources\\references\\Skull\\Skull.obj");
+    std::unique_ptr<Rendering::SoftwareRenderer> renderer;
 
     sf::ContextSettings settings;
     settings.antiAliasingLevel = state.antiAliasingLevel;
@@ -24,10 +24,10 @@ int main() {
     bool usePainter = false;
 
     if (usePainter) {
-        renderer = std::make_unique<PainterRenderer>(window, state);
+        renderer = std::make_unique<Rendering::PainterRenderer>(window, state);
     }
     else {
-        renderer = std::make_unique<ZBufferRenderer>(window, state);
+        renderer = std::make_unique<Rendering::ZBufferRenderer>(window, state);
     }
 
     while (window.isOpen()) {

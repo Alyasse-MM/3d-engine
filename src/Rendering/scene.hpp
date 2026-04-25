@@ -7,14 +7,12 @@ namespace al3d {
     using Mesh = Core::Mesh;
     namespace Rendering {
         struct Face {
-            std::vector<int> indices;
+            std::vector<unsigned> indices;
             sf::Color color;
         };
 
         class Scene {
         public:
-            std::vector<Maths::Vector3<float>> m_vertices;
-            std::vector<Face> m_faces;
             std::vector<std::shared_ptr<Mesh>> m_meshes;
 
             Scene();
