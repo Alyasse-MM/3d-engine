@@ -92,8 +92,8 @@ namespace al3d {
             return m_normals_indices;
         }
 
-        sf::Color Mesh::getFaceColor(int id) {
-            return m_faces_colors[id];
+        const std::vector<sf::Color> Mesh::getFacesColors() {
+            return m_faces_colors;
         }
     }
 }

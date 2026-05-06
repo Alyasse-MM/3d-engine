@@ -21,7 +21,7 @@ namespace al3d {
 			const std::vector<unsigned> getFacesIndices();
 			const std::vector<Maths::Vector3<float>> getNormals();
 			const std::vector<unsigned> getNormalsIndices();
-			sf::Color getFaceColor(int id);
+			const std::vector<sf::Color> getFacesColors();
 		};
 	}
 }
