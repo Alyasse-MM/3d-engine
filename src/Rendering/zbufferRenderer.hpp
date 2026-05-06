@@ -26,6 +26,15 @@ namespace al3d
             bool m_stopThreads = false;
             unsigned m_currentFrameId = 0;
 
+            enum ThreadCapacity {
+                min=1,
+                low=25,
+                medium=50,
+                high=75,
+                veryhigh=90,
+                max=100
+            };
+
             inline uint32_t colorToUint32(sf::Color color) {
                 return (uint32_t)(color.r | (color.g << 8) | (color.b << 16) | (color.a << 24));
             }
@@ -46,7 +55,7 @@ namespace al3d
                 }
                 m_renderSprite.setTexture(m_renderTexture, true);
                 unsigned n = std::thread::hardware_concurrency();
-                n = std::max(unsigned(n * 0.75), unsigned(2));
+                n = std::max(unsigned(n * ThreadCapacity::high/100), unsigned(2));
                 for (unsigned i = 0; i < n; ++i) {
                     m_workers.push_back(std::thread(&ZBufferRenderer::workerLoop, this, i, n));
                 }

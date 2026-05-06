@@ -68,7 +68,7 @@ namespace al3d
                         m_drawList.push_back(RenderFace{
                             screenPoints,
                             zCoords,
-                            m->getFaceColor(i/3),
+                            lambertianShading(faceNormals, sf::Color::White), // m->getFaceColor(i/3)
                             zSum / (float)clipped.size()
                             });
                     }
