@@ -4,6 +4,9 @@
 #include "Core/state.hpp"
 #include "scene.hpp"
 #include "Maths/Vector3.hpp"
+#include <iostream>
+#include <thread>
+#include <mutex>
 
 namespace al3d
 {
@@ -20,27 +23,93 @@ namespace al3d
         };
 
         class SoftwareRenderer {
-        protected:
-            EngineState& m_engineState;
-            sf::RenderWindow& m_window;
+        private:
+            EngineState* m_engineState;
+            sf::RenderWindow* m_window;
             Rendering::Scene* m_scene;
             std::vector<RenderFace> m_drawList;
+            std::vector<RenderFace> m_drawList_next;
+
             std::vector<Vector3f> viewSpaceVertices;
             std::vector<Vector3f> verticesNormals;
 
-            std::vector<unsigned> facesIds;
-            std::vector<unsigned> normalsIds;
-            std::vector<sf::Color> facesColors;
+            std::vector<unsigned> m_facesIds;
+            std::vector<unsigned> m_normalsIds;
+            std::vector<sf::Color> m_facesColors;
 
-            void prepareFacesToDraw();
+            std::vector<uint32_t> m_colorBuffer;
+            std::vector<float> depthBuffers;
+            sf::Texture m_renderTexture;
+            sf::Sprite m_renderSprite;
+
+            std::vector<std::thread> m_workers;
+            std::mutex m_syncMtx;
+            std::mutex m_printMtx;
+            std::condition_variable m_cvStart;
+            std::condition_variable m_cvDone;
+
+            int m_nActiveThreads = 0;
+            bool m_stopThreads = false;
+            unsigned m_currentFrameId = 0;
+
+            static enum ThreadCapacity {
+                min = 1,
+                low = 25,
+                medium = 50,
+                high = 75,
+                veryhigh = 90,
+                max = 100
+            };
+
+            static enum DepthManager {
+                painter = 1,
+                zbuffer = 2
+            };
+
+            void prepareFaces();
+            inline uint32_t colorToUint32(sf::Color color) {
+                return (uint32_t)(color.r | (color.g << 8) | (color.b << 16) | (color.a << 24));
+            }
+
+            void workerLoop_prepareFaces(unsigned refIdFaces, unsigned refIdNormals);
+            void workerLoop_zBuffer(unsigned threadID, unsigned nbThreads);
+            bool putPixel(int x, int y, float z, sf::Color color);
+            void drawTriangle(const RenderFace& f, int startX, int endX, int startY, int endY);
+            void clearBuffers();
+            inline void paintersAlgorithm(std::vector<RenderFace>& drawList);
         public:
-            virtual ~SoftwareRenderer() = default;
+            SoftwareRenderer(sf::RenderWindow* w, EngineState* e, Scene* s) :
+                depthBuffers(e->windowWidth* e->windowHeight, 10000.0f),
+                m_colorBuffer(e->windowWidth* e->windowHeight, 0xff949494),
+                m_renderSprite(m_renderTexture),
+            m_window(w), m_engineState(e), m_scene(s) {
+                m_renderSprite.setColor(sf::Color::White);
+                if (!m_renderTexture.resize({ (unsigned int)e->windowWidth, (unsigned int)e->windowHeight })) {
+                    std::cerr << "Failed to initialize render texture!" << std::endl;
+                }
+                m_renderSprite.setTexture(m_renderTexture, true);
+                unsigned n = std::thread::hardware_concurrency();
+                n = std::max(unsigned(n * ThreadCapacity::high / 100), unsigned(2));
+                for (unsigned i = 0; i < n; ++i) {
+                    m_workers.push_back(std::thread(&SoftwareRenderer::workerLoop_zBuffer, this, i, n));
+                };
+                m_drawList={};
+            }
 
-            void workerPrepareFacesLoop(unsigned refIdFaces, unsigned refIdNormals);
+            ~SoftwareRenderer() {
+                {
+                    std::lock_guard<std::mutex> lock(m_syncMtx);
+                    m_stopThreads = true;
+                }
+                m_cvStart.notify_all();
 
-            SoftwareRenderer(sf::RenderWindow& w, EngineState& e) : m_engineState(e), m_window(w), m_scene(nullptr) {};
-            virtual void render() = 0;
-            void setScene(Rendering::Scene* s) { m_scene = s; }
+                for (auto& t : m_workers) {
+                    if (t.joinable()) t.join();
+                }
+            }
+
+            void renderZBuffer();
+            void renderPainter();
         };
     }
 }
