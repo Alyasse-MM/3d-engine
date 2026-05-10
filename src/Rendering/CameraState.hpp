@@ -3,14 +3,7 @@
 
 namespace al3d
 {
-    struct EngineState {
-        unsigned windowWidth = 1920;
-        unsigned windowHeight = 1080;
-
-        unsigned antiAliasingLevel = 0;
-
-        float fov = 90.0f;
-
+    struct CameraState {
         Maths::Vector3<float> cameraPosition = { 0.0f, 0.0f, -4.0f };
         float cameraYaw = 0.0f;
         float cameraPitch = 0.0f;
@@ -18,7 +11,5 @@ namespace al3d
 
         float modelAngleX = 0.0f;
         float modelAngleY = 0.0f;
-
-        float nearClipPlane = 0.1f;
     };
 }

@@ -14,6 +14,7 @@ namespace al3d {
         class Scene {
         public:
             std::vector<std::shared_ptr<Mesh>> m_meshes;
+            unsigned faceCount;
 
             Scene();
             std::shared_ptr<Mesh> importMesh(const std::string& path) {
