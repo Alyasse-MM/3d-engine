@@ -1,5 +1,5 @@
 #include "input.hpp"
-#include "maths/Utils.hpp"
+#include "Maths/Utils.hpp"
 
 namespace al3d
 {
@@ -16,7 +16,7 @@ namespace al3d
 
         using Key = sf::Keyboard::Key;
         float rotationStep = 2.0f;
-        float moveStep = 0.1f;
+        float moveStep = 1.0f;
 
         if (sf::Keyboard::isKeyPressed(Key::Left)) state.modelAngleY += rotationStep;
         if (sf::Keyboard::isKeyPressed(Key::Right)) state.modelAngleY -= rotationStep;

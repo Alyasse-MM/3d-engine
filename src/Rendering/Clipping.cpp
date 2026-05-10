@@ -1,4 +1,4 @@
-#include "graphics/Clipping.hpp"
+#include "Rendering/Clipping.hpp"
 #include <cmath>
 #include <maths/Utils.hpp>
 
@@ -6,7 +6,7 @@ namespace al3d
 {
     using namespace Maths;
 
-    namespace Graphics {
+    namespace Rendering {
         std::vector<Vector3<float>> sutherlandHodgmanZ(const std::vector<Vector3<float>>& polygon, float nearClipPlane) {
             if (polygon.empty()) return {};
 

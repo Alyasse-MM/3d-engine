@@ -1,17 +1,17 @@
 #include <SFML/Graphics.hpp>
-#include "core/state.hpp"
-#include "graphics/scene.hpp"
-#include "graphics/painterRenderer.hpp"
-#include "maths/Math.hpp"
-#include "core/input.hpp"
-#include <graphics/zbufferRenderer.hpp>
+#include "Core/state.hpp"
+#include "Rendering/scene.hpp"
+#include "Maths/Maths.hpp"
+#include "Core/input.hpp"
+#include "Core/Mesh.hpp"
 
 using namespace al3d;
 
 int main() {
     EngineState state;
-    Scene* scene = new Scene();
-    std::unique_ptr<SoftwareRenderer> renderer;
+    Rendering::Scene scene{};
+    scene.importMesh("D:\\Fichiers\\Projets_persos\\Programming_Projects\\GitHub\\al_3d\\resources\\references\\Skull\\Skull.obj");
+    std::unique_ptr<Rendering::SoftwareRenderer> renderer;
 
     sf::ContextSettings settings;
     settings.antiAliasingLevel = state.antiAliasingLevel;
@@ -19,21 +19,14 @@ int main() {
     sf::RenderWindow window(sf::VideoMode({ state.windowWidth, state.windowHeight }), "3D Engine", sf::Style::Default, sf::State::Windowed, settings);
     window.setFramerateLimit(60);
 
-    bool usePainter = false;
+    bool usePainter = true;
 
-    if (usePainter) {
-        renderer = std::make_unique<PainterRenderer>(window, state);
-    }
-    else {
-        renderer = std::make_unique<ZBufferRenderer>(window, state);
-    }
+    renderer = std::make_unique<Rendering::SoftwareRenderer>(&window, &state, &scene);
 
     while (window.isOpen()) {
 
         InputManager::handleInput(window, state);
-        if (renderer)
-            renderer->setScene(scene);
-        renderer->render();
+        renderer->renderZBuffer();
         window.display();
     }
 
