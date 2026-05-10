@@ -107,14 +107,14 @@ namespace al3d
             return ((vAB <= 0 && vBC <= 0 && vCA <= 0) || (vAB >= 0 && vBC >= 0 && vCA >= 0));
         }
 
-        inline sf::Color lambertianShading(const std::vector<Vector3<float>>& normals, sf::Color baseColor) {
+        inline sf::Color lambertianShading(float minDarkness, const std::vector<Vector3<float>>& normals, sf::Color baseColor) {
             Vector3<float> faceNormal = (normals[0] + normals[1] + normals[2]) / 3.0f;
             
-            Vector3<float> lightDir = al3d::Maths::Vector3<float>::normalize(Vector3<float>{0.5f, 1.0f, 0.2f});
+            Vector3<float> lightDir = al3d::Maths::Vector3<float>::normalize(Vector3<float>{0.0f, 0.0f, -1.0f});
 
             float intensity = dot(faceNormal, lightDir);
 
-            intensity = std::max(0.0f, intensity);
+            intensity = (minDarkness+std::max(0.0f, intensity))/(1.0f+minDarkness);
 
             return sf::Color(
                 static_cast<uint8_t>(baseColor.r * intensity),

@@ -11,6 +11,29 @@ namespace al3d
         using namespace Maths;
         using Face = Rendering::Face;
 
+        Vector3f SoftwareRenderer::getLightNormal(LightDirection l) {
+            switch (l) {
+            case(1):
+                return { 0,0,1 };
+                break;
+            case(2):
+                return { 0,0,-1 };
+                break;
+            case(3):
+                return { 1,0,0 };
+                break;
+            case(4):
+                return { -1,0,0};
+                break;
+            case(5):
+                return { 0,1,0 };
+                break;
+            case(6):
+                return { 0,-1,0 };
+                break;
+            }
+        }
+
         void SoftwareRenderer::prepareFaces() {
             auto worldRotation = Matrix3<float>::getRotationX(toRadians(m_engineState->modelAngleX)) * Matrix3<float>::getRotationY(toRadians(m_engineState->modelAngleY));
             auto camRotation = Matrix3<float>::getRotationY(toRadians(-m_engineState->cameraYaw));
@@ -20,6 +43,10 @@ namespace al3d
 
             viewSpaceVertices.clear();
             verticesNormals.clear();
+            m_facesIds.clear();
+            m_normalsIds.clear();
+            m_facesColors.clear();
+
             std::vector<Vector3f> vertices, normals;
             for (const auto& m : m_scene->m_meshes) {
                 vertices = m->getVertices();
@@ -41,20 +68,12 @@ namespace al3d
                     auto vec = m->getFacesColors();
                     m_facesColors.insert(m_facesColors.end(), vec.begin(), vec.end());
                 }
-
-
-                //refIdFaces += m->getVertices().size();
-                //refIdNormals += m->getNormals().size();
             }
             m_drawList_next.clear();
-            workerLoop_prepareFaces(refIdFaces, refIdNormals);
-
-            m_facesIds.clear();
-            m_normalsIds.clear();
-            m_facesColors.clear();
+            workerLoop_prepareFaces();
         }
 
-        void SoftwareRenderer::workerLoop_prepareFaces(unsigned refIdFaces, unsigned refIdNormals) {
+        void SoftwareRenderer::workerLoop_prepareFaces() {
             
             float focalLength = calculateFocalLength(m_engineState->fov, m_engineState->windowWidth);
             float halfWidth = m_engineState->windowWidth / 2.0f;
@@ -90,7 +109,7 @@ namespace al3d
                     m_drawList_next.push_back(RenderFace{
                         screenPoints,
                         zCoords,
-                        lambertianShading(faceNormals, sf::Color::White), // m_facesColors[(refIdFaces+i)/3]
+                        lambertianShading(0.15f, faceNormals, sf::Color::White), // m_facesColors[(refIdFaces+i)/3]
                         zSum / (float)clipped.size()
                         });
                 }

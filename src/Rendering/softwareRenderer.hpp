@@ -61,6 +61,15 @@ namespace al3d
                 max = 100
             };
 
+            static enum LightDirection {
+                zPositive = 1,
+                zNegative = 2,
+                xPositive = 3,
+                xNegative = 4,
+                yPositive = 5,
+                yNegative = 6
+            };
+
             static enum DepthManager {
                 painter = 1,
                 zbuffer = 2
@@ -71,7 +80,8 @@ namespace al3d
                 return (uint32_t)(color.r | (color.g << 8) | (color.b << 16) | (color.a << 24));
             }
 
-            void workerLoop_prepareFaces(unsigned refIdFaces, unsigned refIdNormals);
+            Vector3f getLightNormal(LightDirection l);
+            void workerLoop_prepareFaces();
             void workerLoop_zBuffer(unsigned threadID, unsigned nbThreads);
             bool putPixel(int x, int y, float z, sf::Color color);
             void drawTriangle(const RenderFace& f, int startX, int endX, int startY, int endY);
