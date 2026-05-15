@@ -18,7 +18,7 @@ Engine::~Engine() {
 }
 
 void Engine::start() {
-    m_scene.importMesh("D:\\Fichiers\\Projets_persos\\Programming_Projects\\GitHub\\al_3d\\resources\\references\\monkey\\monkey.obj");
+    m_scene.importMesh("..\\..\\..\\..\\tests\\references\\fox\\fox.obj");
 
     bool usePainter = false;
 
