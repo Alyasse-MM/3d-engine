@@ -18,7 +18,7 @@ Engine::~Engine() {
 }
 
 void Engine::start() {
-    m_scene.importMesh("..\\..\\..\\..\\tests\\references\\fox\\fox.obj");
+    m_scene.importMesh("..\\..\\..\\..\\tests\\references\\monkeyveryhigh\\monkey.obj");
 
     bool usePainter = false;
 

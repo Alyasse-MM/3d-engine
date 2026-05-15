@@ -9,7 +9,7 @@ namespace al3d
     namespace Core {
         class InputManager {
         public:
-            static void handleInput(sf::RenderWindow& window, CameraState& state);
+            static void handleInput(sf::RenderWindow& window, al3d::Rendering::CameraState& state);
         };
     }
 }

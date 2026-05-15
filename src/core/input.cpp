@@ -4,7 +4,7 @@
 namespace al3d
 {
     namespace Core {
-        void InputManager::handleInput(sf::RenderWindow& window, CameraState& state) {
+        void InputManager::handleInput(sf::RenderWindow& window, al3d::Rendering::CameraState& state) {
             while (const std::optional event = window.pollEvent()) {
                 if (event->is<sf::Event::Closed>()) {
                     window.close();

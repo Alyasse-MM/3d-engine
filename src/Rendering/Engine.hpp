@@ -6,7 +6,7 @@
 class Engine {
 public:
 	al3d::Rendering::EngineConfig m_config;
-	al3d::CameraState m_state;
+	al3d::Rendering::CameraState m_state;
 	al3d::Rendering::Scene m_scene;
 	sf::RenderWindow m_window;
 	al3d::Rendering::SoftwareRenderer m_renderer;
