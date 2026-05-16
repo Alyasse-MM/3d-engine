@@ -46,4 +46,8 @@ namespace al3d::Core {
     const al3d::Core::MeshInstance::Matrix4f& MeshInstance::getTransformMatrix() const {
         return m_transformMatrix;
     }
+
+    const std::shared_ptr<Mesh> MeshInstance::getMesh() const {
+        return m_mesh;
+    }
 }

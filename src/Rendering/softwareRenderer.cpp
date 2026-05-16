@@ -37,8 +37,8 @@ namespace al3d
         }
 
         void SoftwareRenderer::prepareFaces() {
-            auto worldRotation = Matrix3<float>::getRotationX(toRadians(m_engineState->modelAngleX)) * Matrix3<float>::getRotationY(toRadians(m_engineState->modelAngleY));
-            auto camRotation = Matrix3<float>::getRotationY(toRadians(-m_engineState->cameraYaw));
+            auto worldRotation = Matrix4<float>::getRotationX(toRadians(m_engineState->modelAngleX)) * Matrix4<float>::getRotationY(toRadians(m_engineState->modelAngleY));
+            auto camRotation = Matrix4<float>::getRotationY(toRadians(-m_engineState->cameraYaw));
 
             viewSpaceVertices.clear();
             verticesNormals.clear();
@@ -47,25 +47,26 @@ namespace al3d
             m_facesColors.clear();
 
             std::vector<Vector3f> vertices, normals;
-            for (const auto& m : m_scene->m_meshes) {
-                vertices = m->getVertices();
-                normals = m->getNormals();
+            for (const auto& m : m_scene->m_meshInstances) {
+                vertices = m->getMesh()->getVertices();
+                normals = m->getMesh()->getNormals();
+                auto instanceMatrix = m->getTransformMatrix();
                 for (int i = 0; i < vertices.size(); i++) {
-                    viewSpaceVertices.push_back(worldToView(vertices[i], worldRotation, camRotation, m_engineState->cameraPosition));
+                    viewSpaceVertices.push_back(worldToView(instanceMatrix*vertices[i], worldRotation, camRotation, m_engineState->cameraPosition));
                 }
                 for (int i = 0; i < normals.size(); i++) {
-                    verticesNormals.push_back(worldToViewNormal(normals[i], worldRotation, camRotation));
+                    verticesNormals.push_back(worldToViewNormal(instanceMatrix*normals[i], worldRotation, camRotation));
                 }
                 {
-                    auto vec = m->getFacesIndices();
+                    auto vec = m->getMesh()->getFacesIndices();
                     m_facesIds.insert(m_facesIds.end(), vec.begin(), vec.end());
                 }
                 {
-                    auto vec = m->getNormalsIndices();
+                    auto vec = m->getMesh()->getNormalsIndices();
                     m_normalsIds.insert(m_normalsIds.end(), vec.begin(), vec.end());
                 }
                 {
-                    auto vec = m->getFacesColors();
+                    auto vec = m->getMesh()->getFacesColors();
                     m_facesColors.insert(m_facesColors.end(), vec.begin(), vec.end());
                 }
             }

@@ -32,5 +32,7 @@ namespace al3d::Core {
         void setScale(float newScale);
 
         const Matrix4f& getTransformMatrix() const;
+
+        const std::shared_ptr<Mesh> getMesh() const;
     };
 }

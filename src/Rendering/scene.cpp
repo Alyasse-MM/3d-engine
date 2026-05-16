@@ -12,10 +12,10 @@ namespace al3d
             return newMesh;
         }
         void Scene::loadMeshInstance(const std::string& path, Vector3f position, Vector3f rotations, float scale) {
-            auto newMeshInstance = std::make_shared<MeshInstance>(importMesh(path), position, scale, rotations);
+            m_meshInstances.push_back(std::make_shared<MeshInstance>(importMesh(path), position, scale, rotations));
         }
         void Scene::loadMeshInstance(const std::string& path) {
-            auto newMeshInstance = std::make_shared<MeshInstance>(importMesh(path));
+            m_meshInstances.push_back(std::make_shared<MeshInstance>(importMesh(path)));
         }
     }
 }

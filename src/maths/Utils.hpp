@@ -25,11 +25,11 @@ namespace al3d
         }
 
         template <typename T>
-        Vector3<T> operator*(const Vector3<T>& v) {
-            T x = data[0] * v.x + data[1] * v.y + data[2] * v.z + data[3] * 1;
-            T y = data[4] * v.x + data[5] * v.y + data[6] * v.z + data[7] * 1;
-            T z = data[8] * v.x + data[9] * v.y + data[10] * v.z + data[11] * 1;
-            T w = data[12] * v.x + data[13] * v.y + data[14] * v.z + data[15] * 1;
+        Vector3<T> operator*(const Matrix4<T> A, const Vector3<T>& B) {
+            T x = A.data[0] * B.x + A.data[1] * B.y + A.data[2] * B.z + A.data[3] * 1;
+            T y = A.data[4] * B.x + A.data[5] * B.y + A.data[6] * B.z + A.data[7] * 1;
+            T z = A.data[8] * B.x + A.data[9] * B.y + A.data[10] * B.z + A.data[11] * 1;
+            T w = A.data[12] * B.x + A.data[13] * B.y + A.data[14] * B.z + A.data[15] * 1;
 
             if (w != 0 && w != 1) {
                 T invW = 1 / w;
@@ -88,14 +88,13 @@ namespace al3d
 
             Vector3<float> viewVector = cameraPos - faceCenter;
 
-            // 3. Dot Product: If > 0, the face is pointing toward the camera
             return (dot(faceNormal, viewVector) > 0);
         }
 
         inline sf::Vector2f perspectiveProjection(const Vector3<float>& v, float focalLength, float centerX, float centerY) {
             return {
                 (v.x / v.z) * focalLength + centerX,
-                (v.y / v.z) * focalLength + centerY
+                (-v.y / v.z) * focalLength + centerY
             };
         }
 
@@ -110,8 +109,8 @@ namespace al3d
         }
 
         inline Vector3<float> worldToView(const Vector3<float>& v,
-            const Matrix3<float>& modelRotation,
-            const Matrix3<float>& viewRotation,
+            const Matrix4<float>& modelRotation,
+            const Matrix4<float>& viewRotation,
             const Vector3<float>& cameraPosition)
         {
             Vector3<float> world = modelRotation * v;
@@ -120,8 +119,8 @@ namespace al3d
         }
         
         inline Vector3<float> worldToViewNormal(const Vector3<float>& n,
-            const Matrix3<float>& modelRotation,
-            const Matrix3<float>& viewRotation)
+            const Matrix4<float>& modelRotation,
+            const Matrix4<float>& viewRotation)
         {
             Vector3<float> worldNormal = modelRotation * n;
 
