@@ -2,7 +2,7 @@
 #include "Vector3.hpp"
 #include "Matrix3.hpp"
 #include <SFML/System/Vector2.hpp>
-#include <Rendering/softwareRenderer.hpp>
+#include <SFML/Graphics.hpp>
 
 namespace al3d
 {
@@ -47,8 +47,8 @@ namespace al3d
             return degrees * 3.14159f / 180.0f;
         };
 
-        inline bool backfaceCulling(const std::vector<Vector3<float>>& vertices,
-            const std::vector<Vector3<float>>& normals,
+        inline bool backfaceCulling(const Vector3<float> vertices[3],
+            const Vector3<float> normals[3],
             const Vector3<float>& cameraPos) {
 
             Vector3<float> faceNormal = (normals[0] + normals[1] + normals[2]) / 3.0f;
@@ -107,7 +107,7 @@ namespace al3d
             return ((vAB <= 0 && vBC <= 0 && vCA <= 0) || (vAB >= 0 && vBC >= 0 && vCA >= 0));
         }
 
-        inline sf::Color lambertianShading(float minDarkness, const std::vector<Vector3<float>>& normals, sf::Color baseColor) {
+        inline sf::Color lambertianShading(float minDarkness, const Vector3<float> normals[3], sf::Color baseColor) {
             Vector3<float> faceNormal = (normals[0] + normals[1] + normals[2]) / 3.0f;
             
             Vector3<float> lightDir = al3d::Maths::Vector3<float>::normalize(Vector3<float>{0.0f, 0.0f, -1.0f});

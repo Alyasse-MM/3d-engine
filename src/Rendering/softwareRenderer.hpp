@@ -1,18 +1,18 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <algorithm>
-#include "Core/state.hpp"
+#include "CameraState.hpp"
 #include "scene.hpp"
 #include "Maths/Vector3.hpp"
 #include <iostream>
 #include <thread>
 #include <mutex>
+#include "EngineConfig.hpp"
 
 namespace al3d
 {
     namespace Rendering
     {
-        using Face = Rendering::Face;
         using Vector3f = Maths::Vector3<float>;
 
         struct RenderFace {
@@ -24,9 +24,11 @@ namespace al3d
 
         class SoftwareRenderer {
         private:
-            EngineState* m_engineState;
+            EngineConfig* m_engineConfig;
+            CameraState* m_engineState;
             sf::RenderWindow* m_window;
-            Rendering::Scene* m_scene;
+            Scene* m_scene;
+
             std::vector<RenderFace> m_drawList;
             std::vector<RenderFace> m_drawList_next;
 
@@ -38,7 +40,7 @@ namespace al3d
             std::vector<sf::Color> m_facesColors;
 
             std::vector<uint32_t> m_colorBuffer;
-            std::vector<float> depthBuffers;
+            std::vector<float> m_depthBuffers;
             sf::Texture m_renderTexture;
             sf::Sprite m_renderSprite;
 
@@ -88,13 +90,14 @@ namespace al3d
             void clearBuffers();
             inline void paintersAlgorithm(std::vector<RenderFace>& drawList);
         public:
-            SoftwareRenderer(sf::RenderWindow* w, EngineState* e, Scene* s) :
-                depthBuffers(e->windowWidth* e->windowHeight, 10000.0f),
-                m_colorBuffer(e->windowWidth* e->windowHeight, 0xff949494),
-                m_renderSprite(m_renderTexture),
-            m_window(w), m_engineState(e), m_scene(s) {
+            SoftwareRenderer(sf::RenderWindow* w, CameraState* e, EngineConfig* c, Scene* s) :
+                m_depthBuffers(c->windowWidth* c->windowHeight, 10000.0f),
+                m_colorBuffer(c->windowWidth* c->windowHeight, 0xff949494),
+                m_renderSprite(m_renderTexture), m_window(w), m_engineState(e),
+                m_engineConfig(c), m_scene(s), m_drawList(), m_drawList_next()
+            {
                 m_renderSprite.setColor(sf::Color::White);
-                if (!m_renderTexture.resize({ (unsigned int)e->windowWidth, (unsigned int)e->windowHeight })) {
+                if (!m_renderTexture.resize({ (unsigned int)c->windowWidth, (unsigned int)c->windowHeight })) {
                     std::cerr << "Failed to initialize render texture!" << std::endl;
                 }
                 m_renderSprite.setTexture(m_renderTexture, true);
@@ -103,7 +106,6 @@ namespace al3d
                 for (unsigned i = 0; i < n; ++i) {
                     m_workers.push_back(std::thread(&SoftwareRenderer::workerLoop_zBuffer, this, i, n));
                 };
-                m_drawList={};
             }
 
             ~SoftwareRenderer() {

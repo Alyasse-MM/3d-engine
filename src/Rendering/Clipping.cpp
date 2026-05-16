@@ -7,14 +7,15 @@ namespace al3d
     using namespace Maths;
 
     namespace Rendering {
-        std::vector<Vector3<float>> sutherlandHodgmanZ(const std::vector<Vector3<float>>& polygon, float nearClipPlane) {
-            if (polygon.empty()) return {};
+        std::vector<Vector3<float>> sutherlandHodgmanZ(const Vector3<float> polygon[3], float nearClipPlane) {
+            //if (polygon.empty()) return {};
 
             std::vector<Vector3<float>> clippedVertices;
-            Vector3<float> edgeStart = polygon.back();
+            Vector3<float> edgeStart = polygon[2];
             bool edgeStartInside = (edgeStart.z >= nearClipPlane);
 
-            for (const auto& edgeEnd : polygon) {
+            for (unsigned i = 0; i < 3;i++) {
+                auto edgeEnd = polygon[i];
                 bool edgeEndInside = (edgeEnd.z >= nearClipPlane);
 
                 float intersectionRatio = (nearClipPlane - edgeStart.z) / (edgeEnd.z - edgeStart.z);
@@ -34,7 +35,7 @@ namespace al3d
             return clippedVertices;
         }
 
-        std::vector<std::vector<Vector3<float>>> clipPolygon(const std::vector<Vector3<float>>& polygon, float nearClipPlane) {
+        std::vector<std::vector<Vector3<float>>> clipPolygon(const Vector3<float> polygon[3], float nearClipPlane) {
             std::vector<Vector3<float>> poly{ sutherlandHodgmanZ(polygon, nearClipPlane) };
             if (poly.size() < 3) {
                 return {};

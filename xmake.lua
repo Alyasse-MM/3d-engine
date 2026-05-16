@@ -9,6 +9,7 @@ target("3d-engine")
     add_files("src/**.cpp")
     add_headerfiles("src/**.h", "src/**.hpp")
     add_packages("sfml")
+    set_symbols("debug")
 
 task("vsrefresh")
     set_category("plugin")

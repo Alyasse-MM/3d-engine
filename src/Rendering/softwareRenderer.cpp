@@ -31,15 +31,14 @@ namespace al3d
             case(6):
                 return { 0,-1,0 };
                 break;
+            default:
+                return { 0,0,1 };
             }
         }
 
         void SoftwareRenderer::prepareFaces() {
             auto worldRotation = Matrix3<float>::getRotationX(toRadians(m_engineState->modelAngleX)) * Matrix3<float>::getRotationY(toRadians(m_engineState->modelAngleY));
             auto camRotation = Matrix3<float>::getRotationY(toRadians(-m_engineState->cameraYaw));
-
-            unsigned refIdFaces = 0;
-            unsigned refIdNormals = 0;
 
             viewSpaceVertices.clear();
             verticesNormals.clear();
@@ -53,9 +52,10 @@ namespace al3d
                 normals = m->getNormals();
                 for (int i = 0; i < vertices.size(); i++) {
                     viewSpaceVertices.push_back(worldToView(vertices[i], worldRotation, camRotation, m_engineState->cameraPosition));
+                }
+                for (int i = 0; i < normals.size(); i++) {
                     verticesNormals.push_back(worldToViewNormal(normals[i], worldRotation, camRotation));
                 }
-
                 {
                     auto vec = m->getFacesIndices();
                     m_facesIds.insert(m_facesIds.end(), vec.begin(), vec.end());
@@ -74,18 +74,13 @@ namespace al3d
         }
 
         void SoftwareRenderer::workerLoop_prepareFaces() {
-            
-            float focalLength = calculateFocalLength(m_engineState->fov, m_engineState->windowWidth);
-            float halfWidth = m_engineState->windowWidth / 2.0f;
-            float halfHeight = m_engineState->windowHeight / 2.0f;
-
             for (unsigned i = 0; i < m_facesIds.size() - 2; i += 3) {
-                std::vector<Vector3f> faceVerts = {
+                Vector3f faceVerts[3] = {
                     viewSpaceVertices[m_facesIds[i]],
                     viewSpaceVertices[m_facesIds[i + 1]],
                     viewSpaceVertices[m_facesIds[i + 2]]
                 };
-                std::vector<Vector3f> faceNormals = {
+                Vector3f faceNormals[3] = {
                     verticesNormals[m_normalsIds[i]],
                     verticesNormals[m_normalsIds[i + 1]],
                     verticesNormals[m_normalsIds[i + 2]]
@@ -93,7 +88,7 @@ namespace al3d
 
                 if (!backfaceCulling(faceVerts, faceNormals, m_engineState->cameraPosition)) continue;
 
-                for (std::vector<Vector3f> clipped : Rendering::clipPolygon(faceVerts, m_engineState->nearClipPlane))
+                for (std::vector<Vector3f> clipped : Rendering::clipPolygon(faceVerts, m_engineConfig->nearClipPlane))
                 {
                     if (clipped.size() != 3) continue;
 
@@ -101,7 +96,7 @@ namespace al3d
                     std::vector<float> zCoords;
                     float zSum = 0;
                     for (const auto& vertex : clipped) {
-                        screenPoints.push_back(perspectiveProjection(vertex, focalLength, halfWidth, halfHeight));
+                        screenPoints.push_back(perspectiveProjection(vertex, m_engineConfig->focalLength, m_engineConfig->halfWidth, m_engineConfig->halfHeight));
                         zCoords.push_back(vertex.z),
                             zSum += vertex.z;
                     }
@@ -109,20 +104,15 @@ namespace al3d
                     m_drawList_next.push_back(RenderFace{
                         screenPoints,
                         zCoords,
-                        lambertianShading(0.15f, faceNormals, sf::Color::White), // m_facesColors[(refIdFaces+i)/3]
+                        lambertianShading(m_engineConfig->minDarkness, faceNormals, sf::Color::White), // m_facesColors[(refIdFaces+i)/3]
                         zSum / (float)clipped.size()
                         });
                 }
             }
-            std::cout << m_drawList_next.size() << "\n";
         }
 
         void SoftwareRenderer::renderZBuffer() {
-            auto startPrep = std::chrono::system_clock::now();
             prepareFaces();
-            auto endPrep = std::chrono::system_clock::now();
-
-            std::chrono::duration<double> elapsed_seconds_prep = endPrep - startPrep;
 
             std::swap(m_drawList, m_drawList_next);
 
@@ -133,8 +123,6 @@ namespace al3d
                 m_nActiveThreads = m_workers.size();
                 m_currentFrameId++;
             }
-
-            auto startDraw = std::chrono::system_clock::now();
 
             {
                 std::unique_lock<std::mutex> lock(m_syncMtx);
@@ -149,20 +137,12 @@ namespace al3d
             m_renderTexture.update(reinterpret_cast<const uint8_t*>(m_colorBuffer.data()));
             m_window->clear(sf::Color::Black);
             m_window->draw(m_renderSprite);
-
-            auto endDraw = std::chrono::system_clock::now();
-
-            std::chrono::duration<double> elapsed_seconds_draw = endDraw - startDraw;
-
-            std::cout << "prepare time: " << elapsed_seconds_prep.count() << "s"
-                << " - draw time" << elapsed_seconds_draw.count() << "s"
-                << std::endl;
         }
 
         void SoftwareRenderer::workerLoop_zBuffer(unsigned threadId, unsigned nbThreads) {
-            int sliceHeight = m_engineState->windowHeight / nbThreads;
+            int sliceHeight = m_engineConfig->windowHeight / nbThreads;
             int threadStartY = threadId * sliceHeight;
-            int threadEndY = (threadId == nbThreads - 1) ? (m_engineState->windowHeight - 1) : (threadStartY + sliceHeight - 1);
+            int threadEndY = (threadId == nbThreads - 1) ? (m_engineConfig->windowHeight - 1) : (threadStartY + sliceHeight - 1);
 
             {
                 std::unique_lock<std::mutex> lock(m_printMtx);
@@ -191,7 +171,7 @@ namespace al3d
                     float faceMinX = std::min({ face.points[0].x, face.points[1].x, face.points[2].x });
                     float faceMaxX = std::max({ face.points[0].x, face.points[1].x, face.points[2].x });
                     int faceStartX = std::max(0, (int)std::floor(faceMinX));
-                    int faceEndX = std::min((int)m_engineState->windowWidth - 1, (int)std::ceil(faceMaxX));
+                    int faceEndX = std::min((int)m_engineConfig->windowWidth - 1, (int)std::ceil(faceMaxX));
 
                     drawTriangle(face, faceStartX, faceEndX, faceStartY, faceEndY);
                 }
@@ -239,14 +219,14 @@ namespace al3d
         }
 
         bool SoftwareRenderer::putPixel(int x, int y, float z, sf::Color color) {
-            if (x < 0 || x >= m_engineState->windowWidth || y < 0 || y >= m_engineState->windowHeight) {
+            if (x < 0 || x >= m_engineConfig->windowWidth || y < 0 || y >= m_engineConfig->windowHeight) {
                 return false;
             }
-            int i = y * m_engineState->windowWidth + x;
+            int i = y * m_engineConfig->windowWidth + x;
 
-            bool isNewZ = z < depthBuffers[i];
+            bool isNewZ = z < m_depthBuffers[i];
             if (isNewZ) {
-                depthBuffers[i] = z;
+                m_depthBuffers[i] = z;
                 m_colorBuffer[i] = colorToUint32(color);
             }
             return isNewZ;
@@ -254,7 +234,7 @@ namespace al3d
 
         void SoftwareRenderer::clearBuffers() {
             std::fill(m_colorBuffer.begin(), m_colorBuffer.end(), 0xff949494);
-            std::fill(depthBuffers.begin(), depthBuffers.end(), 10000.0f);
+            std::fill(m_depthBuffers.begin(), m_depthBuffers.end(), 10000.0f);
         }
 
         void SoftwareRenderer::renderPainter() {
