@@ -2,9 +2,13 @@
 #include <SFML/Graphics.hpp>
 #include "Maths/Vector3.hpp"
 #include "Core/Mesh.hpp"
+#include "Core/MeshInstance.hpp"
 
 namespace al3d {
     using Mesh = Core::Mesh;
+    using MeshInstance = Core::MeshInstance;
+    using Vector3f = Maths::Vector3<float>;
+
     namespace Rendering {
         struct Face {
             std::vector<unsigned> indices;
@@ -14,14 +18,12 @@ namespace al3d {
         class Scene {
         public:
             std::vector<std::shared_ptr<Mesh>> m_meshes;
-            unsigned faceCount;
+            std::vector<std::shared_ptr<MeshInstance>> m_meshInstances;
 
             Scene();
-            std::shared_ptr<Mesh> importMesh(const std::string& path) {
-                auto newMesh = std::make_shared<Mesh>(path);
-                m_meshes.push_back(newMesh);
-                return newMesh;
-            }
+            std::shared_ptr<Mesh> importMesh(const std::string& path);
+            void loadMeshInstance(const std::string& path, Vector3f position, Vector3f rotations, float scale);
+            void loadMeshInstance(const std::string& path);
         };
     }
 }

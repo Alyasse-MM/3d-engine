@@ -1,12 +1,43 @@
 #pragma once
 #include "Vector3.hpp"
 #include "Matrix3.hpp"
+#include "Matrix4.hpp"
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics.hpp>
 
 namespace al3d
 {
     namespace Maths {
+
+        template <typename T>
+        Matrix4<T> operator*(const Matrix4<T>& A, const Matrix4<T>& B) {
+            Matrix4<float> result;
+            for (int row = 0; row < 4; ++row) {
+                for (int col = 0; col < 4; ++col) {
+                    result.data[row * 4 + col] =
+                        A.data[row * 4 + 0] * B.data[0 * 4 + col] +
+                        A.data[row * 4 + 1] * B.data[1 * 4 + col] +
+                        A.data[row * 4 + 2] * B.data[2 * 4 + col] +
+                        A.data[row * 4 + 3] * B.data[3 * 4 + col];
+                }
+            }
+            return result;
+        }
+
+        template <typename T>
+        Vector3<T> operator*(const Vector3<T>& v) {
+            T x = data[0] * v.x + data[1] * v.y + data[2] * v.z + data[3] * 1;
+            T y = data[4] * v.x + data[5] * v.y + data[6] * v.z + data[7] * 1;
+            T z = data[8] * v.x + data[9] * v.y + data[10] * v.z + data[11] * 1;
+            T w = data[12] * v.x + data[13] * v.y + data[14] * v.z + data[15] * 1;
+
+            if (w != 0 && w != 1) {
+                T invW = 1 / w;
+                return Vector3<T>{ x* invW, y* invW, z* invW };
+            }
+            return Vector3<T>{ x, y, z };
+        }
+
         template <typename T>
         Matrix3<T> operator*(const Matrix3<T>& A, const Matrix3<T>& B) {
             Matrix3<T> result;
