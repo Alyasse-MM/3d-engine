@@ -13,7 +13,7 @@ namespace al3d {
 			std::vector<Maths::Vector3<float>> m_vertices;
 			std::vector<Maths::Vector3<float>> m_normals;
 			std::vector<unsigned> m_vertices_indices, m_normals_indices;
-			std::vector<sf::Color> m_faces_colors;
+			sf::Color m_base_color;
 		public:
 			Mesh(const std::string filePath);
 			~Mesh();
@@ -21,7 +21,7 @@ namespace al3d {
 			const std::vector<unsigned> getFacesIndices();
 			const std::vector<Maths::Vector3<float>> getNormals();
 			const std::vector<unsigned> getNormalsIndices();
-			const std::vector<sf::Color> getFacesColors();
+			const sf::Color getBaseColor();
 		};
 	}
 }

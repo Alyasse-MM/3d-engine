@@ -39,6 +39,7 @@ namespace al3d
         void SoftwareRenderer::prepareFaces() {
             auto worldRotation = Matrix4<float>::getRotationX(toRadians(m_engineState->modelAngleX)) * Matrix4<float>::getRotationY(toRadians(m_engineState->modelAngleY));
             auto camRotation = Matrix4<float>::getRotationY(toRadians(-m_engineState->cameraYaw));
+            m_drawList_next.clear();
 
             viewSpaceVertices.clear();
             verticesNormals.clear();
@@ -47,67 +48,56 @@ namespace al3d
             m_facesColors.clear();
 
             std::vector<Vector3f> vertices, normals;
+            unsigned refIdFaces{ 0 }, refIdNormals{ 0 };
             for (const auto& m : m_scene->m_meshInstances) {
                 vertices = m->getMesh()->getVertices();
                 normals = m->getMesh()->getNormals();
                 auto instanceMatrix = m->getTransformMatrix();
+
                 for (int i = 0; i < vertices.size(); i++) {
-                    viewSpaceVertices.push_back(worldToView(instanceMatrix*vertices[i], worldRotation, camRotation, m_engineState->cameraPosition));
+                    vertices[i]=worldToView(instanceMatrix * vertices[i], worldRotation, camRotation, m_engineState->cameraPosition);
                 }
                 for (int i = 0; i < normals.size(); i++) {
-                    verticesNormals.push_back(worldToViewNormal(instanceMatrix*normals[i], worldRotation, camRotation));
+                    normals[i]=worldToViewNormal(instanceMatrix * normals[i], worldRotation, camRotation);
                 }
-                {
-                    auto vec = m->getMesh()->getFacesIndices();
-                    m_facesIds.insert(m_facesIds.end(), vec.begin(), vec.end());
-                }
-                {
-                    auto vec = m->getMesh()->getNormalsIndices();
-                    m_normalsIds.insert(m_normalsIds.end(), vec.begin(), vec.end());
-                }
-                {
-                    auto vec = m->getMesh()->getFacesColors();
-                    m_facesColors.insert(m_facesColors.end(), vec.begin(), vec.end());
-                }
-            }
-            m_drawList_next.clear();
-            workerLoop_prepareFaces();
-        }
+                auto facesIds = m->getMesh()->getFacesIndices();
+                auto normalsIds = m->getMesh()->getNormalsIndices();
+                sf::Color meshColor = m->getMesh()->getBaseColor();
 
-        void SoftwareRenderer::workerLoop_prepareFaces() {
-            for (unsigned i = 0; i < m_facesIds.size() - 2; i += 3) {
-                Vector3f faceVerts[3] = {
-                    viewSpaceVertices[m_facesIds[i]],
-                    viewSpaceVertices[m_facesIds[i + 1]],
-                    viewSpaceVertices[m_facesIds[i + 2]]
-                };
-                Vector3f faceNormals[3] = {
-                    verticesNormals[m_normalsIds[i]],
-                    verticesNormals[m_normalsIds[i + 1]],
-                    verticesNormals[m_normalsIds[i + 2]]
-                };
+                for (unsigned i = 0; i < facesIds.size() - 2; i += 3) {
+                    Vector3f faceVerts[3] = {
+                    vertices[facesIds[i]],
+                    vertices[facesIds[i + 1]],
+                    vertices[facesIds[i + 2]]
+                    };
+                    Vector3f faceNormals[3] = {
+                        normals[normalsIds[i]],
+                        normals[normalsIds[i + 1]],
+                        normals[normalsIds[i + 2]]
+                    };
 
-                if (!backfaceCulling(faceVerts, faceNormals, m_engineState->cameraPosition)) continue;
+                    if (!backfaceCulling(faceVerts, faceNormals, m_engineState->cameraPosition)) continue;
 
-                for (std::vector<Vector3f> clipped : Rendering::clipPolygon(faceVerts, m_engineConfig->nearClipPlane))
-                {
-                    if (clipped.size() != 3) continue;
+                    for (std::vector<Vector3f> clipped : Rendering::clipPolygon(faceVerts, m_engineConfig->nearClipPlane))
+                    {
+                        if (clipped.size() != 3) continue;
 
-                    std::vector<sf::Vector2f> screenPoints;
-                    std::vector<float> zCoords;
-                    float zSum = 0;
-                    for (const auto& vertex : clipped) {
-                        screenPoints.push_back(perspectiveProjection(vertex, m_engineConfig->focalLength, m_engineConfig->halfWidth, m_engineConfig->halfHeight));
-                        zCoords.push_back(vertex.z),
-                            zSum += vertex.z;
+                        std::vector<sf::Vector2f> screenPoints;
+                        std::vector<float> zCoords;
+                        float zSum = 0;
+                        for (const auto& vertex : clipped) {
+                            screenPoints.push_back(perspectiveProjection(vertex, m_engineConfig->focalLength, m_engineConfig->halfWidth, m_engineConfig->halfHeight));
+                            zCoords.push_back(vertex.z),
+                                zSum += vertex.z;
+                        }
+
+                        m_drawList_next.push_back(RenderFace{
+                            screenPoints,
+                            zCoords,
+                            lambertianShading(m_engineConfig->minDarkness, faceNormals, meshColor), // m_facesColors[(refIdFaces+i)/3]
+                            zSum / (float)clipped.size()
+                            });
                     }
-
-                    m_drawList_next.push_back(RenderFace{
-                        screenPoints,
-                        zCoords,
-                        lambertianShading(m_engineConfig->minDarkness, faceNormals, sf::Color::White), // m_facesColors[(refIdFaces+i)/3]
-                        zSum / (float)clipped.size()
-                        });
                 }
             }
         }

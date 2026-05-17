@@ -13,6 +13,8 @@ namespace al3d {
                 throw std::runtime_error("Failed to open file: " + filePath);
             }
 
+            m_base_color = getRandomColor();
+
             std::string line;
             std::vector<Maths::Vector3<float>> tempNormals;
             while (std::getline(file, line)) {
@@ -60,7 +62,6 @@ namespace al3d {
                             m_normals_indices.push_back(normals_indices[i]);
                             m_vertices_indices.push_back(vertices_indices[i + 1]);
                             m_normals_indices.push_back(normals_indices[i + 1]);
-                            m_faces_colors.push_back(getRandomColor());
                         }
                     }
                     else if (vertices_indices.size() < 3) {
@@ -70,7 +71,6 @@ namespace al3d {
                         for (unsigned i = 0; i < 3; i++){
                             m_vertices_indices.push_back(vertices_indices[i]);
                             m_normals_indices.push_back(normals_indices[i]);
-                            m_faces_colors.push_back(getRandomColor());
                         }
                     }
                 }
@@ -92,8 +92,8 @@ namespace al3d {
             return m_normals_indices;
         }
 
-        const std::vector<sf::Color> Mesh::getFacesColors() {
-            return m_faces_colors;
+        const sf::Color Mesh::getBaseColor() {
+            return m_base_color;
         }
     }
 }
