@@ -39,6 +39,7 @@ namespace al3d
         void SoftwareRenderer::prepareFaces() {
             auto worldRotation = Matrix4<float>::getRotationX(toRadians(m_engineState->modelAngleX)) * Matrix4<float>::getRotationY(toRadians(m_engineState->modelAngleY));
             auto camRotation = Matrix4<float>::getRotationY(toRadians(-m_engineState->cameraYaw));
+            auto camNormal = camRotation * m_engineState->cameraNormal;
             m_drawList_next.clear();
 
             viewSpaceVertices.clear();
@@ -52,13 +53,14 @@ namespace al3d
             for (const auto& m : m_scene->m_meshInstances) {
                 vertices = m->getMesh()->getVertices();
                 normals = m->getMesh()->getNormals();
-                auto instanceMatrix = m->getTransformMatrix();
+                auto instanceMatrix4 = m->getTransformMatrix4();
+                auto instanceMatrix3 = m->getTransformMatrix3();
 
                 for (int i = 0; i < vertices.size(); i++) {
-                    vertices[i]=worldToView(instanceMatrix * vertices[i], worldRotation, camRotation, m_engineState->cameraPosition);
+                    vertices[i]=worldToView(instanceMatrix4 * vertices[i], worldRotation, camRotation, m_engineState->cameraPosition);
                 }
                 for (int i = 0; i < normals.size(); i++) {
-                    normals[i]=worldToViewNormal(instanceMatrix * normals[i], worldRotation, camRotation);
+                    normals[i]=worldToViewNormal(instanceMatrix3 * normals[i], worldRotation, camRotation);
                 }
                 auto facesIds = m->getMesh()->getFacesIndices();
                 auto normalsIds = m->getMesh()->getNormalsIndices();
@@ -76,7 +78,7 @@ namespace al3d
                         normals[normalsIds[i + 2]]
                     };
 
-                    if (!backfaceCulling(faceVerts, faceNormals, m_engineState->cameraPosition)) continue;
+                    if (!backfaceCulling(faceVerts, faceNormals)) continue;
 
                     for (std::vector<Vector3f> clipped : Rendering::clipPolygon(faceVerts, m_engineConfig->nearClipPlane))
                     {
@@ -94,7 +96,7 @@ namespace al3d
                         m_drawList_next.push_back(RenderFace{
                             screenPoints,
                             zCoords,
-                            lambertianShading(m_engineConfig->minDarkness, faceNormals, meshColor), // m_facesColors[(refIdFaces+i)/3]
+                            lambertianShading(m_engineConfig->minDarkness, faceNormals, meshColor, m_engineConfig->lightDirections), // m_facesColors[(refIdFaces+i)/3]
                             zSum / (float)clipped.size()
                             });
                     }

@@ -78,17 +78,14 @@ namespace al3d
             return degrees * 3.14159f / 180.0f;
         };
 
-        inline bool backfaceCulling(const Vector3<float> vertices[3],
-            const Vector3<float> normals[3],
-            const Vector3<float>& cameraPos) {
-
+        inline bool backfaceCulling(const Vector3<float> vertices[3], const Vector3<float> normals[3]) {
             Vector3<float> faceNormal = (normals[0] + normals[1] + normals[2]) / 3.0f;
+            Vector3<float> normalizedFaceNormal = al3d::Maths::Vector3<float>::normalize(faceNormal);
 
             Vector3<float> faceCenter = (vertices[0] + vertices[1] + vertices[2]) / 3.0f;
+            Vector3<float> perspectiveLookDir = al3d::Maths::Vector3<float>::normalize(faceCenter);
 
-            Vector3<float> viewVector = cameraPos - faceCenter;
-
-            return (dot(faceNormal, viewVector) > 0);
+            return (dot(normalizedFaceNormal, perspectiveLookDir) < 0);
         }
 
         inline sf::Vector2f perspectiveProjection(const Vector3<float>& v, float focalLength, float centerX, float centerY) {
@@ -137,12 +134,12 @@ namespace al3d
             return ((vAB <= 0 && vBC <= 0 && vCA <= 0) || (vAB >= 0 && vBC >= 0 && vCA >= 0));
         }
 
-        inline sf::Color lambertianShading(float minDarkness, const Vector3<float> normals[3], sf::Color baseColor) {
-            Vector3<float> faceNormal = (normals[0] + normals[1] + normals[2]) / 3.0f;
+        inline sf::Color lambertianShading(float minDarkness, const Vector3<float> normals[3], sf::Color baseColor, const Vector3<float> lightDir) {
+            Vector3<float> faceNormal = al3d::Maths::Vector3<float>::normalize((normals[0] + normals[1] + normals[2]) / 3.0f);
             
-            Vector3<float> lightDir = al3d::Maths::Vector3<float>::normalize(Vector3<float>{0.0f, 0.0f, -1.0f});
+            Vector3<float> normalLightDir = al3d::Maths::Vector3<float>::normalize(lightDir);
 
-            float intensity = dot(faceNormal, lightDir);
+            float intensity = dot(faceNormal, normalLightDir);
 
             intensity = (minDarkness+std::max(0.0f, intensity))/(1.0f+minDarkness);
 

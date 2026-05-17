@@ -27,8 +27,12 @@ namespace al3d
                 return Matrix3{ { c, -s, 0, s, c, 0, 0, 0, 1 } };
             }
 
-            static Matrix3 getScaling(T kx, T ky, T kz) {
-                return Matrix3{ { kx, 0, 0, 0, ky, 0, 0, 0, kz } };
+            static Matrix3 getHomothety(T k) {
+                return Matrix3{ {
+                    k, 0, 0,
+                    0, k, 0,
+                    0, 0, k
+                } };
             }
         };
     }

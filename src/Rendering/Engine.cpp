@@ -21,15 +21,10 @@ Engine::~Engine() {
 
 void Engine::start() {
     m_scene.loadMeshInstance(
-        "..\\..\\..\\..\\tests\\references\\monkeylow\\monkey.obj",
-        {0.f, 0.f, 0.f},
-        {0.f, 0.f, 0.f},
+        "..\\..\\..\\..\\tests\\references\\Skull\\Skull.obj",
+        { 0.f, 0.f, 0.f },
+        { 0.f, 0.f, 0.f },
         0.1f);
-    m_scene.loadMeshInstance(
-        "..\\..\\..\\..\\tests\\references\\monkeylow\\monkey.obj",
-        { 1.f, 0.f, 0.f },
-        { 0.f, 0.f, 0.f},
-        0.5f);
 
     bool usePainter = false;
 

@@ -8,6 +8,7 @@
 namespace al3d::Core {
     class MeshInstance {
         using Matrix4f = al3d::Maths::Matrix4<float>;
+        using Matrix3f = al3d::Maths::Matrix3<float>;
         using Vector3f = al3d::Maths::Vector3<float>;
     private:
         std::shared_ptr<Mesh> m_mesh;
@@ -16,7 +17,8 @@ namespace al3d::Core {
         Vector3f m_rotation;
         float m_scale;
 
-        Matrix4f m_transformMatrix;
+        Matrix4f m_transformMatrix4;
+        Matrix3f m_transformMatrix3;
 
         void updateMatrix();
 
@@ -31,7 +33,8 @@ namespace al3d::Core {
 
         void setScale(float newScale);
 
-        const Matrix4f& getTransformMatrix() const;
+        const Matrix4f& getTransformMatrix4() const;
+        const Matrix3f& getTransformMatrix3() const;
 
         const std::shared_ptr<Mesh> getMesh() const;
     };
