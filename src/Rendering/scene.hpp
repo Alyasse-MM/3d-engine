@@ -17,7 +17,7 @@ namespace al3d {
 
         class Scene {
         public:
-            std::vector<std::shared_ptr<Mesh>> m_meshes;
+            std::unordered_map<std::string, std::shared_ptr<Mesh>> m_meshes;
             std::vector<std::shared_ptr<MeshInstance>> m_meshInstances;
 
             Scene();

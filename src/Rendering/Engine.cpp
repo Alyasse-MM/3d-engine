@@ -20,11 +20,14 @@ Engine::~Engine() {
 }
 
 void Engine::start() {
-    m_scene.loadMeshInstance(
-        "..\\..\\..\\..\\tests\\references\\Skull\\Skull.obj",
-        { 0.f, 0.f, 0.f },
-        { 0.f, 0.f, 0.f },
-        0.1f);
+    for (int i=0;i<3;i++)
+    {
+        m_scene.loadMeshInstance(
+            "..\\..\\..\\..\\tests\\references\\Skull\\Skull.obj",
+            { 0.f+(1+1*i), 0.f, 0.f},
+            { 0.f, 0.f, 0.f },
+            0.1f/(1+i));
+    }
 
     bool usePainter = false;
 
