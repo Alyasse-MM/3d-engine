@@ -1,12 +1,43 @@
 #pragma once
 #include "Vector3.hpp"
 #include "Matrix3.hpp"
+#include "Matrix4.hpp"
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics.hpp>
 
 namespace al3d
 {
     namespace Maths {
+
+        template <typename T>
+        Matrix4<T> operator*(const Matrix4<T>& A, const Matrix4<T>& B) {
+            Matrix4<float> result;
+            for (int row = 0; row < 4; ++row) {
+                for (int col = 0; col < 4; ++col) {
+                    result.data[row * 4 + col] =
+                        A.data[row * 4 + 0] * B.data[0 * 4 + col] +
+                        A.data[row * 4 + 1] * B.data[1 * 4 + col] +
+                        A.data[row * 4 + 2] * B.data[2 * 4 + col] +
+                        A.data[row * 4 + 3] * B.data[3 * 4 + col];
+                }
+            }
+            return result;
+        }
+
+        template <typename T>
+        Vector3<T> operator*(const Matrix4<T> A, const Vector3<T>& B) {
+            T x = A.data[0] * B.x + A.data[1] * B.y + A.data[2] * B.z + A.data[3] * 1;
+            T y = A.data[4] * B.x + A.data[5] * B.y + A.data[6] * B.z + A.data[7] * 1;
+            T z = A.data[8] * B.x + A.data[9] * B.y + A.data[10] * B.z + A.data[11] * 1;
+            T w = A.data[12] * B.x + A.data[13] * B.y + A.data[14] * B.z + A.data[15] * 1;
+
+            if (w != 0 && w != 1) {
+                T invW = 1 / w;
+                return Vector3<T>{ x* invW, y* invW, z* invW };
+            }
+            return Vector3<T>{ x, y, z };
+        }
+
         template <typename T>
         Matrix3<T> operator*(const Matrix3<T>& A, const Matrix3<T>& B) {
             Matrix3<T> result;
@@ -47,24 +78,20 @@ namespace al3d
             return degrees * 3.14159f / 180.0f;
         };
 
-        inline bool backfaceCulling(const Vector3<float> vertices[3],
-            const Vector3<float> normals[3],
-            const Vector3<float>& cameraPos) {
-
+        inline bool backfaceCulling(const Vector3<float> vertices[3], const Vector3<float> normals[3]) {
             Vector3<float> faceNormal = (normals[0] + normals[1] + normals[2]) / 3.0f;
+            Vector3<float> normalizedFaceNormal = al3d::Maths::Vector3<float>::normalize(faceNormal);
 
             Vector3<float> faceCenter = (vertices[0] + vertices[1] + vertices[2]) / 3.0f;
+            Vector3<float> perspectiveLookDir = al3d::Maths::Vector3<float>::normalize(faceCenter);
 
-            Vector3<float> viewVector = cameraPos - faceCenter;
-
-            // 3. Dot Product: If > 0, the face is pointing toward the camera
-            return (dot(faceNormal, viewVector) > 0);
+            return (dot(normalizedFaceNormal, perspectiveLookDir) < 0);
         }
 
         inline sf::Vector2f perspectiveProjection(const Vector3<float>& v, float focalLength, float centerX, float centerY) {
             return {
                 (v.x / v.z) * focalLength + centerX,
-                (v.y / v.z) * focalLength + centerY
+                (-v.y / v.z) * focalLength + centerY
             };
         }
 
@@ -79,8 +106,8 @@ namespace al3d
         }
 
         inline Vector3<float> worldToView(const Vector3<float>& v,
-            const Matrix3<float>& modelRotation,
-            const Matrix3<float>& viewRotation,
+            const Matrix4<float>& modelRotation,
+            const Matrix4<float>& viewRotation,
             const Vector3<float>& cameraPosition)
         {
             Vector3<float> world = modelRotation * v;
@@ -89,8 +116,8 @@ namespace al3d
         }
         
         inline Vector3<float> worldToViewNormal(const Vector3<float>& n,
-            const Matrix3<float>& modelRotation,
-            const Matrix3<float>& viewRotation)
+            const Matrix4<float>& modelRotation,
+            const Matrix4<float>& viewRotation)
         {
             Vector3<float> worldNormal = modelRotation * n;
 
@@ -107,12 +134,12 @@ namespace al3d
             return ((vAB <= 0 && vBC <= 0 && vCA <= 0) || (vAB >= 0 && vBC >= 0 && vCA >= 0));
         }
 
-        inline sf::Color lambertianShading(float minDarkness, const Vector3<float> normals[3], sf::Color baseColor) {
-            Vector3<float> faceNormal = (normals[0] + normals[1] + normals[2]) / 3.0f;
+        inline sf::Color lambertianShading(float minDarkness, const Vector3<float> normals[3], sf::Color baseColor, const Vector3<float> lightDir) {
+            Vector3<float> faceNormal = al3d::Maths::Vector3<float>::normalize((normals[0] + normals[1] + normals[2]) / 3.0f);
             
-            Vector3<float> lightDir = al3d::Maths::Vector3<float>::normalize(Vector3<float>{0.0f, 0.0f, -1.0f});
+            Vector3<float> normalLightDir = al3d::Maths::Vector3<float>::normalize(lightDir);
 
-            float intensity = dot(faceNormal, lightDir);
+            float intensity = dot(faceNormal, normalLightDir);
 
             intensity = (minDarkness+std::max(0.0f, intensity))/(1.0f+minDarkness);
 

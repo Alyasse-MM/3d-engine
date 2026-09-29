@@ -1,6 +1,8 @@
 #pragma once
 #include "Engine.hpp"
 #include "Core/input.hpp"
+#include "Core/MeshInstance.hpp"
+using namespace al3d::Maths;
 
 using namespace al3d;
 
@@ -18,7 +20,14 @@ Engine::~Engine() {
 }
 
 void Engine::start() {
-    m_scene.importMesh("..\\..\\..\\..\\tests\\references\\monkeyveryhigh\\monkey.obj");
+    for (int i=0;i<3;i++)
+    {
+        m_scene.loadMeshInstance(
+            "..\\..\\..\\..\\tests\\references\\Skull\\Skull.obj",
+            { 0.f+(1+1*i), 0.f, 0.f},
+            { 0.f, 0.f, 0.f },
+            0.1f/(1+i));
+    }
 
     bool usePainter = false;
 

@@ -83,7 +83,6 @@ namespace al3d
             }
 
             Vector3f getLightNormal(LightDirection l);
-            void workerLoop_prepareFaces();
             void workerLoop_zBuffer(unsigned threadID, unsigned nbThreads);
             bool putPixel(int x, int y, float z, sf::Color color);
             void drawTriangle(const RenderFace& f, int startX, int endX, int startY, int endY);
